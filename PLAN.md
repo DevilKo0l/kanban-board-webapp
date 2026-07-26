@@ -38,15 +38,15 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 
 ### Tasks
 
-- [ ] Inspect the repository and confirm which files and configuration already exist.
-- [ ] Confirm `docs/references/kanban-board-reference.png` exists and is readable before UI implementation begins.
-- [ ] Review `docs/references/kanban-board-reference.png` and document the required visual regions: global header, workspace sidebar, view toolbar, board canvas, status columns, task cards, and AI drawer.
-- [ ] Confirm the frontend uses Next.js App Router, TypeScript, Tailwind CSS, Lucide icons, and `dnd-kit` unless an equivalent setup is already present and approved.
-- [ ] Record the exact development, test, lint, type-check, and build commands after scaffolding decisions are finalized.
-- [ ] Create `apps/frontend/web/AGENTS.md` describing only frontend-specific structure, component boundaries, design tokens, accessibility rules, and visual conventions.
-- [ ] Confirm the monorepo structure and responsibilities of `apps/frontend/web`, `apps/backend/api`, `packages/types`, `scripts`, `docs`, root workspace files, and Docker files.
-- [ ] Define which reference controls are functional and which are intentionally unavailable in the MVP.
-- [ ] Review and approve this plan before implementation begins.
+- [x] Inspect the repository and confirm which files and configuration already exist.
+- [x] Confirm `docs/references/kanban-board-reference.png` exists and is readable before UI implementation begins.
+- [x] Review `docs/references/kanban-board-reference.png` and document the required visual regions: global header, workspace sidebar, view toolbar, board canvas, status columns, task cards, and AI drawer.
+- [x] Confirm the frontend uses Next.js App Router, TypeScript, Tailwind CSS, Lucide icons, and `dnd-kit` unless an equivalent setup is already present and approved.
+- [x] Record the exact development, test, lint, type-check, and build commands after scaffolding decisions are finalized.
+- [x] Create `apps/frontend/web/AGENTS.md` describing only frontend-specific structure, component boundaries, design tokens, accessibility rules, and visual conventions.
+- [x] Confirm the monorepo structure and responsibilities of `apps/frontend/web`, `apps/backend/api`, `packages/types`, `scripts`, `docs`, root workspace files, and Docker files.
+- [x] Define which reference controls are functional and which are intentionally unavailable in the MVP.
+- [x] Review and approve this plan before implementation begins.
 
 ### Validation
 
