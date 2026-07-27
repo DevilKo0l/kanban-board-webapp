@@ -14,6 +14,8 @@ describe("BoardExperience", () => {
     expect(screen.getByRole("button", { name: "List view unavailable" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Calendar view unavailable" })).toBeDisabled();
     expect(screen.getByRole("navigation", { name: "Workspace navigation" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Board view controls")).toHaveClass("overflow-x-auto");
+    expect(screen.getByLabelText("Search cards").closest("div")).toHaveClass("border-t");
     expect(screen.getByRole("region", { name: /To Do column with 3 cards/i })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: /In Progress column with 4 cards/i })).toBeInTheDocument();
     expect(screen.getByLabelText("In Review collapsed column")).toBeInTheDocument();

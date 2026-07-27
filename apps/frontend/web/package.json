@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "check": "tsc --noEmit",
+    "check": "tsc -p tsconfig.check.json --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest"

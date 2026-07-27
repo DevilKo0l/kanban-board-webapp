@@ -10,8 +10,11 @@ type BoardToolbarProps = {
 
 export function BoardToolbar({ visibleCount, totalCount, query, onQueryChange }: BoardToolbarProps) {
   return (
-    <div className="flex min-h-[74px] flex-wrap items-center justify-between gap-4 border-b border-[var(--color-border)] bg-white px-5 md:px-8">
-      <div className="flex items-center gap-1">
+    <div className="flex min-h-[74px] flex-col border-b border-[var(--color-border)] bg-white px-5 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:px-8">
+      <div
+        className="scrollbar-soft flex w-full min-w-0 items-center gap-1 overflow-x-auto lg:w-auto"
+        aria-label="Board view controls"
+      >
         <ToolbarTab icon={<List size={18} />} label="List" unavailable />
         <ToolbarTab active icon={<SquareKanban size={18} />} label="Board" />
         <ToolbarTab icon={<Calendar size={18} />} label="Calendar" unavailable />
@@ -25,8 +28,8 @@ export function BoardToolbar({ visibleCount, totalCount, query, onQueryChange }:
           Add
         </button>
       </div>
-      <div className="flex min-w-0 flex-1 items-center justify-end gap-3">
-        <label className="flex h-9 min-w-[180px] max-w-[280px] flex-1 items-center gap-2 rounded-md border border-transparent px-2 text-sm text-[var(--color-muted)] focus-within:border-[var(--color-active-purple)]">
+      <div className="flex w-full min-w-0 items-center gap-3 border-t border-[var(--color-border)] py-3 lg:flex-1 lg:justify-end lg:border-t-0 lg:py-0">
+        <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border border-transparent px-2 text-sm text-[var(--color-muted)] focus-within:border-[var(--color-active-purple)] lg:max-w-[280px]">
           <Search aria-hidden="true" size={18} />
           <span className="sr-only">Search cards</span>
           <input
@@ -72,7 +75,7 @@ function ToolbarTab({ active = false, icon, label, unavailable = false }: Toolba
       aria-current={active ? "page" : undefined}
       aria-label={unavailable ? `${label} view unavailable` : `${label} view`}
       className={[
-        "relative inline-flex h-[74px] items-center gap-2 px-3 text-base",
+        "relative inline-flex h-14 shrink-0 items-center gap-2 px-3 text-base lg:h-[74px]",
         active ? "font-semibold text-[var(--color-text)]" : "text-[var(--color-muted)]",
         unavailable ? "cursor-not-allowed opacity-60" : "hover:bg-[var(--color-toolbar-hover)]",
       ].join(" ")}
