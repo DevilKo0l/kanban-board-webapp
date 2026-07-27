@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="240" viewBox="0 0 640 240" role="img" aria-label="Abstract soft wave cover">
+  <rect width="640" height="240" fill="#edf8f3"/>
+  <circle cx="72" cy="40" r="126" fill="#eeeafe"/>
+  <circle cx="522" cy="28" r="146" fill="#f0f1ff"/>
+  <path d="M0 169c79-41 154-55 226-42 73 14 125 46 158 96 24 35 109 25 256-30v47H0Z" fill="#fff9e7" opacity=".82"/>
+  <path d="M0 86c83 20 159 23 228 9 70-14 128-41 175-82 35-31 114-5 237 78v66c-128-80-217-107-267-80-70 39-132 62-187 70-55 9-117 2-186-21Z" fill="#6c5ce7" opacity=".16"/>
+</svg>

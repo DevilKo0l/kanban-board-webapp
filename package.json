@@ -8,6 +8,10 @@
     "packages/*"
   ],
   "scripts": {
+    "frontend:build": "npm --workspace @kanban/web run build",
+    "frontend:check": "npm --workspace @kanban/web run check",
+    "frontend:lint": "npm --workspace @kanban/web run lint",
+    "frontend:test": "npm --workspace @kanban/web run test",
     "types:build": "npm --workspace @kanban/types run build",
     "types:check": "npm --workspace @kanban/types run check"
   }

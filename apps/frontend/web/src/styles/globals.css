@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+:root {
+  --color-header: #202020;
+  --color-page: #ffffff;
+  --color-border: #e7e7eb;
+  --color-text: #252525;
+  --color-muted: #77777f;
+  --color-active-purple: #6c5ce7;
+  --color-active-purple-bg: #eeeafe;
+  --color-todo-bg: #f6f6f7;
+  --color-progress-bg: #f0f1ff;
+  --color-review-bg: #fff9e7;
+  --color-closed-bg: #edf8f3;
+  --color-closed-green: #14835b;
+  --color-review-yellow: #b87900;
+  --color-scrollbar: #c8c8d2;
+  --color-header-control: #8c8c8c;
+  --color-header-muted: #c8c8c8;
+  --color-header-search: #d6d6d6;
+  --color-ai-button: #4a276b;
+  --color-ai-button-hover: #553079;
+  --color-logo-bg: #eaf4ff;
+  --color-logo-text: #2079bd;
+  --color-inbox-badge: #d83d83;
+  --color-space-launch: #159b8d;
+  --color-space-product: #d83d46;
+  --color-space-engineering: #fac34f;
+  --color-space-design: #2196e0;
+  --color-space-finance: #7b4ac8;
+  --color-card-hover: #f6f6f7;
+  --color-message-bg: #f8f8fa;
+  --color-toolbar-hover: #fafafa;
+  --color-todo-label: #eeeeef;
+  --color-progress-dot: #5666d8;
+  --color-progress-label: #e7e9ff;
+  --color-progress-text: #465ac8;
+  --color-review-label: #fff1bf;
+  --color-closed-label: #dff2ea;
+  --shadow-card: 0 1px 2px rgba(32, 32, 32, 0.08), 0 12px 24px rgba(32, 32, 32, 0.04);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-page);
+  color: var(--color-text);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-active-purple);
+  outline-offset: 2px;
+}
+
+.scrollbar-soft {
+  scrollbar-color: var(--color-scrollbar) transparent;
+  scrollbar-width: thin;
+}
+
+.scrollbar-soft::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+.scrollbar-soft::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+  border-radius: 999px;
+}

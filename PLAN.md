@@ -93,23 +93,23 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 
 ### Tasks
 
-- [ ] Scaffold the Next.js App Router frontend in `apps/frontend/web/` using TypeScript.
-- [ ] Organize frontend code under `src/app`, `src/features`, `src/components`, `src/lib`, and `src/styles` according to `AGENTS.md`.
-- [ ] Configure Tailwind CSS, shared design tokens, icons, formatting, linting, type-checking, and frontend tests.
-- [ ] Consume reusable frontend-facing contracts from `packages/types` instead of duplicating TypeScript interfaces across features.
-- [ ] Build the dark global header with navigation affordances, centered search styling, AI trigger, and compact right-side actions.
-- [ ] Build the desktop workspace sidebar with workspace identity, basic navigation placeholders, a `Spaces` section, and one visually selected board space.
-- [ ] Build the board toolbar with `List`, `Board`, and `Calendar` tabs, with only `Board` active and functional.
-- [ ] Add a functional board search control and a visible-card count.
-- [ ] Build four status columns with the required labels, status colors, compact headers, card counts, and `Add task` actions.
-- [ ] Make `In Review` collapsible and allow every column to collapse or expand without changing board data.
-- [ ] Build reusable task cards with a title and optional compact metadata such as initials avatars, due date, subtask count, attachment count, flag, and local cover variant.
-- [ ] Add seeded local demo data that creates a balanced board visually similar to `docs/references/kanban-board-reference.png` without copying its exact names, photos, or artwork.
-- [ ] Add a card creation flow and an edit dialog or side panel for title, description, and due date.
-- [ ] Add client-side card movement and deterministic reordering with `dnd-kit` using temporary local state.
-- [ ] Add loading, empty, error, hover, focus, disabled, dragging, and drop-target states.
-- [ ] Ensure the board scrolls horizontally when needed and the sidebar collapses appropriately on narrower screens.
-- [ ] Add focused frontend tests for shell rendering, search, column collapse, card editing, and drag-and-drop domain behavior.
+- [x] Scaffold the Next.js App Router frontend in `apps/frontend/web/` using TypeScript.
+- [x] Organize frontend code under `src/app`, `src/features`, `src/components`, `src/lib`, and `src/styles` according to `AGENTS.md`.
+- [x] Configure Tailwind CSS, shared design tokens, icons, formatting, linting, type-checking, and frontend tests.
+- [x] Consume reusable frontend-facing contracts from `packages/types` instead of duplicating TypeScript interfaces across features.
+- [x] Build the dark global header with navigation affordances, centered search styling, AI trigger, and compact right-side actions.
+- [x] Build the desktop workspace sidebar with workspace identity, basic navigation placeholders, a `Spaces` section, and one visually selected board space.
+- [x] Build the board toolbar with `List`, `Board`, and `Calendar` tabs, with only `Board` active and functional.
+- [x] Add a functional board search control and a visible-card count.
+- [x] Build four status columns with the required labels, status colors, compact headers, card counts, and `Add task` actions.
+- [x] Make `In Review` collapsible and allow every column to collapse or expand without changing board data.
+- [x] Build reusable task cards with a title and optional compact metadata such as initials avatars, due date, subtask count, attachment count, flag, and local cover variant.
+- [x] Add seeded local demo data that creates a balanced board visually similar to `docs/references/kanban-board-reference.png` without copying its exact names, photos, or artwork.
+- [x] Add a card creation flow and an edit dialog or side panel for title, description, and due date.
+- [x] Add client-side card movement and deterministic reordering with `dnd-kit` using temporary local state.
+- [x] Add loading, empty, error, hover, focus, disabled, dragging, and drop-target states.
+- [x] Ensure the board scrolls horizontally when needed and the sidebar collapses appropriately on narrower screens.
+- [x] Add focused frontend tests for shell rendering, search, column collapse, card editing, and drag-and-drop domain behavior.
 
 ### Validation
 

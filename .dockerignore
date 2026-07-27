@@ -16,6 +16,8 @@ data
 **/.next
 **/out
 **/coverage
+**/dist
+**/*.tsbuildinfo
 playwright-report
 test-results
 docs/references

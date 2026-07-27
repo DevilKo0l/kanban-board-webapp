@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="240" viewBox="0 0 640 240" role="img" aria-label="Abstract shadow cover">
+  <rect width="640" height="240" fill="#f6f6f7"/>
+  <path d="M0 214C86 122 169 67 251 50c82-18 160 4 234 66 55 46 107 72 155 78v46H0Z" fill="#202020" opacity=".72"/>
+  <path d="M64 0c70 89 132 143 185 162 54 19 112 11 174-24 56-32 128-38 217-18V0Z" fill="#77777f" opacity=".34"/>
+  <path d="M0 89c82-44 148-55 198-34 51 21 103 42 156 64 54 22 149 3 286-56v72c-86 39-158 61-216 66-58 4-111-11-160-45-60-40-148-37-264 10Z" fill="#ffffff" opacity=".76"/>
+</svg>
