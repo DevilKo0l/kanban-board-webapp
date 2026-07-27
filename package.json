@@ -1,0 +1,14 @@
+{
+  "name": "kanban-board-webapp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local Project Management MVP with a Kanban board and AI assistant.",
+  "workspaces": [
+    "apps/frontend/web",
+    "packages/*"
+  ],
+  "scripts": {
+    "types:build": "npm --workspace @kanban/types run build",
+    "types:check": "npm --workspace @kanban/types run check"
+  }
+}

@@ -64,16 +64,16 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 
 ### Tasks
 
-- [ ] Create the monorepo directories exactly as defined in `AGENTS.md` without adding parallel `frontend/` or `backend/` roots.
-- [ ] Create the root `package.json` as an npm workspace for `apps/frontend/web` and `packages/*`.
-- [ ] Create `packages/types` for shared TypeScript API and board contracts without runtime business logic.
-- [ ] Create the FastAPI backend under `apps/backend/api/`.
-- [ ] Configure Python dependencies with `uv` inside `apps/backend/api/`.
-- [ ] Add a health endpoint and a simple API response.
-- [ ] Configure FastAPI to serve a temporary static page at `/`.
-- [ ] Create one Docker image capable of containing the backend and built frontend files.
-- [ ] Add start and stop scripts for Windows, macOS, and Linux under `scripts/`.
-- [ ] Add safe environment-variable loading, a committed `.env.example`, and rules preventing `.env` from being committed.
+- [x] Create the monorepo directories exactly as defined in `AGENTS.md` without adding parallel `frontend/` or `backend/` roots.
+- [x] Create the root `package.json` as an npm workspace for `apps/frontend/web` and `packages/*`.
+- [x] Create `packages/types` for shared TypeScript API and board contracts without runtime business logic.
+- [x] Create the FastAPI backend under `apps/backend/api/`.
+- [x] Configure Python dependencies with `uv` inside `apps/backend/api/`.
+- [x] Add a health endpoint and a simple API response.
+- [x] Configure FastAPI to serve a temporary static page at `/`.
+- [x] Create one Docker image capable of containing the backend and built frontend files.
+- [x] Add start and stop scripts for Windows, macOS, and Linux under `scripts/`.
+- [x] Add safe environment-variable loading, a committed `.env.example`, and rules preventing `.env` from being committed.
 
 ### Validation
 

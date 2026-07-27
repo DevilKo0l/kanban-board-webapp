@@ -1,0 +1,22 @@
+services:
+  app:
+    image: kanban-board-webapp-app:0.1.0
+    build:
+      context: .
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      APP_HOST: ${APP_HOST:-0.0.0.0}
+      APP_PORT: 8000
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////app/data/kanban.db}
+      DUMMY_USERNAME: ${DUMMY_USERNAME:-user}
+      DUMMY_PASSWORD: ${DUMMY_PASSWORD:-password}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-oss-120b}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENROUTER_TIMEOUT_SECONDS: ${OPENROUTER_TIMEOUT_SECONDS:-30}
+      OPENROUTER_MAX_RETRIES: ${OPENROUTER_MAX_RETRIES:-2}
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - ./data:/app/data
