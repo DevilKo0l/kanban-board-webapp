@@ -154,15 +154,15 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 
 ### Tasks
 
-- [ ] Design the minimal SQLite schema for users, boards, columns, and cards.
-- [ ] Support multiple users in the schema while enforcing one board per user for the MVP.
-- [ ] Include four fixed status keys and deterministic ordering for columns and cards.
-- [ ] Allow fixed column display names to change while preventing creation, deletion, and reordering.
-- [ ] Define card fields for title, optional description, optional due date, position, and timestamps.
-- [ ] Define only the lightweight optional display fields needed by the reference-inspired UI, such as assignee initials, subtask count, attachment count, flagged state, and local cover variant.
-- [ ] Do not design full subtask, attachment, file upload, notification, or team-membership systems.
-- [ ] Save the proposed schema as `docs/database-schema.json`.
-- [ ] Document initialization, relationships, constraints, ordering strategy, fixed-column rules, and key decisions in `docs/database.md`.
+- [x] Design the minimal SQLite schema for users, boards, columns, and cards.
+- [x] Support multiple users in the schema while enforcing one board per user for the MVP.
+- [x] Include four fixed status keys and deterministic ordering for columns and cards.
+- [x] Allow fixed column display names to change while preventing creation, deletion, and reordering.
+- [x] Define card fields for title, optional description, optional due date, position, and timestamps.
+- [x] Define only the lightweight optional display fields needed by the reference-inspired UI, such as assignee initials, subtask count, attachment count, flagged state, and local cover variant.
+- [x] Do not design full subtask, attachment, file upload, notification, or team-membership systems.
+- [x] Save the proposed schema as `docs/database-schema.json`.
+- [x] Document initialization, relationships, constraints, ordering strategy, fixed-column rules, and key decisions in `docs/database.md`.
 - [ ] Review and approve the schema before implementing it.
 
 ### Validation

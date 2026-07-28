@@ -1,0 +1,428 @@
+{
+  "schemaVersion": 1,
+  "database": {
+    "engine": "sqlite",
+    "access": "SQLAlchemy 2.x",
+    "transactionPolicy": "Use explicit transactions for all writes, especially card moves and reorder operations.",
+    "timestampPolicy": "Store UTC timestamps in created_at and updated_at columns."
+  },
+  "statusKeys": [
+    "todo",
+    "in_progress",
+    "in_review",
+    "closed"
+  ],
+  "coverVariants": [
+    "none",
+    "soft-gradient",
+    "shadow",
+    "waves"
+  ],
+  "positionPolicy": {
+    "type": "integer",
+    "scope": "Positions are unique within each column for cards and unique within each board for columns.",
+    "initialGap": 1000,
+    "renormalizeWhen": "When inserting between adjacent cards would not leave a deterministic integer gap.",
+    "sortOrder": "Ascending position, then ascending created_at, then ascending id as a stable tie-breaker."
+  },
+  "tables": {
+    "users": {
+      "purpose": "Future-ready user ownership table. MVP authentication is still hardcoded and uses this table only for board ownership.",
+      "columns": {
+        "id": {
+          "type": "TEXT",
+          "primaryKey": true,
+          "nullable": false,
+          "description": "Application-generated stable identifier."
+        },
+        "username": {
+          "type": "TEXT",
+          "nullable": false,
+          "unique": true,
+          "description": "Unique login/owner name. The MVP seed user is user."
+        },
+        "created_at": {
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "constraints": [
+        {
+          "name": "ck_users_username_not_blank",
+          "type": "check",
+          "expression": "length(trim(username)) > 0"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ux_users_username",
+          "columns": [
+            "username"
+          ],
+          "unique": true
+        }
+      ]
+    },
+    "boards": {
+      "purpose": "One persistent MVP board per user.",
+      "columns": {
+        "id": {
+          "type": "TEXT",
+          "primaryKey": true,
+          "nullable": false,
+          "description": "Application-generated stable identifier."
+        },
+        "user_id": {
+          "type": "TEXT",
+          "nullable": false,
+          "references": "users.id",
+          "onDelete": "CASCADE"
+        },
+        "name": {
+          "type": "TEXT",
+          "nullable": false,
+          "default": "Launch Board"
+        },
+        "created_at": {
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "constraints": [
+        {
+          "name": "ck_boards_name_not_blank",
+          "type": "check",
+          "expression": "length(trim(name)) > 0"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ux_boards_user_id",
+          "columns": [
+            "user_id"
+          ],
+          "unique": true,
+          "description": "Enforces one board per user for the MVP while keeping multi-user ownership possible."
+        }
+      ]
+    },
+    "board_columns": {
+      "purpose": "Four fixed status columns. Display names are editable; status keys and positions are fixed by application rules.",
+      "columns": {
+        "id": {
+          "type": "TEXT",
+          "primaryKey": true,
+          "nullable": false,
+          "description": "Application-generated stable identifier."
+        },
+        "board_id": {
+          "type": "TEXT",
+          "nullable": false,
+          "references": "boards.id",
+          "onDelete": "CASCADE"
+        },
+        "status_key": {
+          "type": "TEXT",
+          "nullable": false,
+          "allowedValues": [
+            "todo",
+            "in_progress",
+            "in_review",
+            "closed"
+          ],
+          "description": "Stable identity used by APIs and AI actions. It is never renamed."
+        },
+        "name": {
+          "type": "TEXT",
+          "nullable": false,
+          "description": "User-editable display label."
+        },
+        "position": {
+          "type": "INTEGER",
+          "nullable": false,
+          "description": "Fixed ordering: 1000, 2000, 3000, 4000 for the MVP statuses."
+        },
+        "created_at": {
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "constraints": [
+        {
+          "name": "ck_board_columns_status_key",
+          "type": "check",
+          "expression": "status_key in ('todo', 'in_progress', 'in_review', 'closed')"
+        },
+        {
+          "name": "ck_board_columns_name_not_blank",
+          "type": "check",
+          "expression": "length(trim(name)) > 0"
+        },
+        {
+          "name": "ck_board_columns_position_positive",
+          "type": "check",
+          "expression": "position > 0"
+        },
+        {
+          "name": "uq_board_columns_id_board_id",
+          "type": "unique",
+          "columns": [
+            "id",
+            "board_id"
+          ],
+          "description": "Supports composite card ownership checks."
+        },
+        {
+          "name": "uq_board_columns_board_status",
+          "type": "unique",
+          "columns": [
+            "board_id",
+            "status_key"
+          ]
+        },
+        {
+          "name": "uq_board_columns_board_position",
+          "type": "unique",
+          "columns": [
+            "board_id",
+            "position"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_board_columns_board_position",
+          "columns": [
+            "board_id",
+            "position"
+          ],
+          "unique": false
+        }
+      ]
+    },
+    "cards": {
+      "purpose": "Persist Kanban cards and lightweight reference-style display metadata.",
+      "columns": {
+        "id": {
+          "type": "TEXT",
+          "primaryKey": true,
+          "nullable": false,
+          "description": "Application-generated stable identifier."
+        },
+        "board_id": {
+          "type": "TEXT",
+          "nullable": false,
+          "references": "boards.id",
+          "onDelete": "CASCADE"
+        },
+        "column_id": {
+          "type": "TEXT",
+          "nullable": false,
+          "references": "board_columns.id",
+          "onDelete": "RESTRICT"
+        },
+        "title": {
+          "type": "TEXT",
+          "nullable": false,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "TEXT",
+          "nullable": true,
+          "maxLength": 600
+        },
+        "due_date": {
+          "type": "DATE",
+          "nullable": true,
+          "format": "YYYY-MM-DD"
+        },
+        "position": {
+          "type": "INTEGER",
+          "nullable": false,
+          "description": "Deterministic order within the current column."
+        },
+        "assignee_initials": {
+          "type": "JSON_TEXT",
+          "nullable": false,
+          "default": "[]",
+          "description": "Small array of initials for display only. It is not a team-membership system."
+        },
+        "subtask_count": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": 0,
+          "description": "Display count only. It does not imply persisted subtasks."
+        },
+        "attachment_count": {
+          "type": "INTEGER",
+          "nullable": false,
+          "default": 0,
+          "description": "Display count only. It does not imply file upload or attachment records."
+        },
+        "flagged": {
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": false
+        },
+        "cover_variant": {
+          "type": "TEXT",
+          "nullable": false,
+          "default": "none",
+          "allowedValues": [
+            "none",
+            "soft-gradient",
+            "shadow",
+            "waves"
+          ]
+        },
+        "created_at": {
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "type": "DATETIME",
+          "nullable": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "constraints": [
+        {
+          "name": "fk_cards_column_same_board",
+          "type": "foreign_key",
+          "columns": [
+            "column_id",
+            "board_id"
+          ],
+          "references": "board_columns(id, board_id)",
+          "description": "Prevents a card from pointing to a column owned by another board."
+        },
+        {
+          "name": "ck_cards_title_not_blank",
+          "type": "check",
+          "expression": "length(trim(title)) > 0"
+        },
+        {
+          "name": "ck_cards_title_max_length",
+          "type": "check",
+          "expression": "length(title) <= 120"
+        },
+        {
+          "name": "ck_cards_description_max_length",
+          "type": "check",
+          "expression": "description is null or length(description) <= 600"
+        },
+        {
+          "name": "ck_cards_position_positive",
+          "type": "check",
+          "expression": "position > 0"
+        },
+        {
+          "name": "ck_cards_subtask_count_non_negative",
+          "type": "check",
+          "expression": "subtask_count >= 0"
+        },
+        {
+          "name": "ck_cards_attachment_count_non_negative",
+          "type": "check",
+          "expression": "attachment_count >= 0"
+        },
+        {
+          "name": "ck_cards_cover_variant",
+          "type": "check",
+          "expression": "cover_variant in ('none', 'soft-gradient', 'shadow', 'waves')"
+        },
+        {
+          "name": "uq_cards_column_position",
+          "type": "unique",
+          "columns": [
+            "column_id",
+            "position"
+          ]
+        }
+      ],
+      "indexes": [
+        {
+          "name": "ix_cards_board_column_position",
+          "columns": [
+            "board_id",
+            "column_id",
+            "position"
+          ],
+          "unique": false
+        },
+        {
+          "name": "ix_cards_board_updated_at",
+          "columns": [
+            "board_id",
+            "updated_at"
+          ],
+          "unique": false
+        }
+      ]
+    }
+  },
+  "initialization": {
+    "onMissingDatabase": [
+      "Create all tables.",
+      "Create the MVP user with username user if missing.",
+      "Create exactly one board for that user if missing.",
+      "Create the four fixed columns if missing with positions 1000, 2000, 3000, and 4000.",
+      "Create reference-inspired demo cards only when the user's board has no cards."
+    ],
+    "fixedColumns": [
+      {
+        "statusKey": "todo",
+        "defaultName": "To Do",
+        "position": 1000
+      },
+      {
+        "statusKey": "in_progress",
+        "defaultName": "In Progress",
+        "position": 2000
+      },
+      {
+        "statusKey": "in_review",
+        "defaultName": "In Review",
+        "position": 3000
+      },
+      {
+        "statusKey": "closed",
+        "defaultName": "Closed",
+        "position": 4000
+      }
+    ]
+  },
+  "outOfScope": [
+    "registration",
+    "password hashes",
+    "multiple boards per user",
+    "custom statuses",
+    "column deletion",
+    "column creation",
+    "column reordering",
+    "subtask rows",
+    "attachment rows",
+    "file uploads",
+    "notifications",
+    "team membership"
+  ]
+}
