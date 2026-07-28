@@ -10,7 +10,9 @@ Cards persist the fields required by the current board UI: title, optional descr
 
 ## Tables
 
-`users` stores ownership identity. It has `id`, unique `username`, `created_at`, and `updated_at`. The MVP seed user is `user`. Password storage is intentionally absent because Phase 4 authentication is hardcoded and production auth is out of scope.
+`users` stores ownership identity and basic personal profile metadata. It has `id`, unique `username`, optional `email`, optional `display_name`, optional `company`, optional `role_title`, `created_at`, and `updated_at`. The MVP seed user is `user`, and profile fields may be null. Password storage is intentionally absent because Phase 4 authentication is hardcoded and production auth is out of scope.
+
+The optional profile fields are scalar metadata only. `company` is a user-facing label, not a company account, workspace, billing entity, team, or permissions boundary. `email` is not used for login, invitations, notifications, or password recovery in the MVP.
 
 `boards` stores one board per user. It has `id`, `user_id`, `name`, `created_at`, and `updated_at`. A unique index on `boards.user_id` enforces the MVP rule that each user has one board.
 
@@ -33,6 +35,16 @@ The exact machine-readable proposal is in `docs/database-schema.json`.
 The ownership path for loading a board is:
 
 `users.id -> boards.user_id -> board_columns.board_id -> cards.board_id`
+
+## Future Spaces
+
+The current `Spaces` sidebar is visual navigation only, so this MVP schema does not include a `spaces` table. Adding one now would force unresolved decisions about space ownership, board grouping, permissions, icons, ordering, archival behavior, and shared membership.
+
+The intended migration path is to insert `spaces` between `users` and `boards` when that feature is approved:
+
+`users -> spaces -> boards -> board_columns -> cards`
+
+If spaces later become shared between people or companies, the schema should introduce a separate workspace or membership design at that time rather than overloading the MVP `company` profile field.
 
 ## Fixed Column Rules
 
@@ -95,15 +107,18 @@ When the SQLite database file is missing, Phase 6 should create all tables and s
 Initialization should be idempotent:
 
 1. Create the MVP user with username `user` if missing.
-2. Create exactly one board for that user if missing.
-3. Create missing fixed columns for that board.
-4. Insert demo cards only if the board has no cards.
+2. Leave optional user profile fields null unless seed profile values are explicitly provided.
+3. Create exactly one board for that user if missing.
+4. Create missing fixed columns for that board.
+5. Insert demo cards only if the board has no cards.
 
 If a future startup finds a board missing one of the four fixed columns, it should repair the missing fixed column. If it finds extra status keys, duplicated fixed statuses, or invalid column ownership, it should fail clearly rather than silently changing user data.
 
 ## Key Decisions
 
 The schema uses four tables only because that is enough for the MVP and keeps later implementation straightforward.
+
+Basic personal information belongs on `users` as nullable scalar metadata. This supports future profile display without introducing profile, company, or workspace systems early.
 
 The one-board-per-user rule is enforced by a unique index on `boards.user_id`, not by assuming only one user exists.
 

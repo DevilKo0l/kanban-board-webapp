@@ -163,7 +163,7 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 - [x] Do not design full subtask, attachment, file upload, notification, or team-membership systems.
 - [x] Save the proposed schema as `docs/database-schema.json`.
 - [x] Document initialization, relationships, constraints, ordering strategy, fixed-column rules, and key decisions in `docs/database.md`.
-- [ ] Review and approve the schema before implementing it.
+- [x] Review and approve the schema before implementing it.
 
 ### Validation
 

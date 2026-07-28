@@ -41,6 +41,30 @@
           "unique": true,
           "description": "Unique login/owner name. The MVP seed user is user."
         },
+        "email": {
+          "type": "TEXT",
+          "nullable": true,
+          "maxLength": 254,
+          "description": "Optional user profile email. It is not used for login, invitations, notifications, or password recovery in the MVP."
+        },
+        "display_name": {
+          "type": "TEXT",
+          "nullable": true,
+          "maxLength": 120,
+          "description": "Optional human-readable profile name."
+        },
+        "company": {
+          "type": "TEXT",
+          "nullable": true,
+          "maxLength": 120,
+          "description": "Optional user profile company label. It is not a workspace, team, billing account, or permissions boundary."
+        },
+        "role_title": {
+          "type": "TEXT",
+          "nullable": true,
+          "maxLength": 120,
+          "description": "Optional user profile role or job title."
+        },
         "created_at": {
           "type": "DATETIME",
           "nullable": false,
@@ -57,6 +81,26 @@
           "name": "ck_users_username_not_blank",
           "type": "check",
           "expression": "length(trim(username)) > 0"
+        },
+        {
+          "name": "ck_users_email_max_length",
+          "type": "check",
+          "expression": "email is null or length(email) <= 254"
+        },
+        {
+          "name": "ck_users_display_name_max_length",
+          "type": "check",
+          "expression": "display_name is null or length(display_name) <= 120"
+        },
+        {
+          "name": "ck_users_company_max_length",
+          "type": "check",
+          "expression": "company is null or length(company) <= 120"
+        },
+        {
+          "name": "ck_users_role_title_max_length",
+          "type": "check",
+          "expression": "role_title is null or length(role_title) <= 120"
         }
       ],
       "indexes": [
@@ -66,6 +110,15 @@
             "username"
           ],
           "unique": true
+        },
+        {
+          "name": "ux_users_email_when_present",
+          "columns": [
+            "email"
+          ],
+          "unique": true,
+          "where": "email is not null",
+          "description": "Allows missing profile emails while preventing duplicate emails when a future profile flow collects one."
         }
       ]
     },
@@ -383,7 +436,7 @@
   "initialization": {
     "onMissingDatabase": [
       "Create all tables.",
-      "Create the MVP user with username user if missing.",
+      "Create the MVP user with username user if missing. Optional profile fields may be null for the seed user.",
       "Create exactly one board for that user if missing.",
       "Create the four fixed columns if missing with positions 1000, 2000, 3000, and 4000.",
       "Create reference-inspired demo cards only when the user's board has no cards."
@@ -415,6 +468,7 @@
     "registration",
     "password hashes",
     "multiple boards per user",
+    "spaces",
     "custom statuses",
     "column deletion",
     "column creation",
