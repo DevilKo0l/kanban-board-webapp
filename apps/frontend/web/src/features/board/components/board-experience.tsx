@@ -35,7 +35,12 @@ type EditorState =
   | { mode: "create"; column: BoardColumn }
   | { mode: "edit"; card: BoardCard; column: BoardColumn };
 
-export function BoardExperience() {
+type BoardExperienceProps = {
+  onLogout?: () => void;
+  username?: string;
+};
+
+export function BoardExperience({ onLogout, username = "user" }: BoardExperienceProps) {
   const [board, setBoard] = useState(initialBoard);
   const [query, setQuery] = useState("");
   const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(
@@ -86,7 +91,7 @@ export function BoardExperience() {
 
   return (
     <div className="h-screen overflow-hidden bg-white">
-      <GlobalHeader onOpenAi={() => setAiOpen(true)} />
+      <GlobalHeader onLogout={onLogout} onOpenAi={() => setAiOpen(true)} username={username} />
       <div className="flex h-[calc(100vh-50px)] min-h-0">
         <WorkspaceSidebar />
         <main className="flex min-w-0 flex-1 flex-col">

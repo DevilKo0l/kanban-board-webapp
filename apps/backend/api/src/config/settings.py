@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     dummy_username: str = Field(default="user", validation_alias="DUMMY_USERNAME")
     dummy_password: str = Field(default="password", validation_alias="DUMMY_PASSWORD")
     session_secret: str = Field(default="", validation_alias="SESSION_SECRET")
+    cors_origins: str = Field(
+        default="http://localhost:3000,http://127.0.0.1:3000",
+        validation_alias="CORS_ORIGINS",
+    )
     openrouter_api_key: str = Field(default="", validation_alias="OPENROUTER_API_KEY")
     openrouter_model: str = Field(
         default="openai/gpt-oss-120b", validation_alias="OPENROUTER_MODEL"
@@ -33,7 +37,12 @@ class Settings(BaseSettings):
         env_file=ROOT_DIR / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        populate_by_name=True,
     )
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 @lru_cache

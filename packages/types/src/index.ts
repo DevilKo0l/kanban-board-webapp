@@ -9,6 +9,14 @@ export type HealthStatus = {
   appEnv: string;
 };
 
+export type AuthUser = {
+  username: string;
+};
+
+export type AuthSession = {
+  user: AuthUser;
+};
+
 export type BoardStatusKey = "todo" | "in_progress" | "in_review" | "closed";
 
 export type CardCoverVariant = "none" | "soft-gradient" | "shadow" | "waves";

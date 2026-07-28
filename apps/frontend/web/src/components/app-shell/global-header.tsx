@@ -5,15 +5,20 @@ import {
   ChevronRight,
   Circle,
   Grid3X3,
+  LogOut,
   PlusCircle,
   Search,
 } from "lucide-react";
 
 type GlobalHeaderProps = {
+  onLogout?: (() => void) | undefined;
   onOpenAi: () => void;
+  username?: string;
 };
 
-export function GlobalHeader({ onOpenAi }: GlobalHeaderProps) {
+export function GlobalHeader({ onLogout, onOpenAi, username = "user" }: GlobalHeaderProps) {
+  const userInitial = username.trim().slice(0, 1).toUpperCase() || "U";
+
   return (
     <header className="flex h-[50px] items-center gap-4 bg-[var(--color-header)] px-5 text-white">
       <div className="flex items-center gap-2 text-[var(--color-header-control)]" aria-label="Window controls">
@@ -67,9 +72,22 @@ export function GlobalHeader({ onOpenAi }: GlobalHeaderProps) {
       <button type="button" className="rounded p-1.5 hover:bg-white/10" aria-label="Notifications unavailable" disabled>
         <Bell aria-hidden="true" size={18} />
       </button>
-      <div className="grid size-8 place-items-center rounded-full bg-[var(--color-active-purple)] text-xs font-bold">
-        U
+      <div
+        className="grid size-8 place-items-center rounded-full bg-[var(--color-active-purple)] text-xs font-bold"
+        aria-label={`Signed in as ${username}`}
+      >
+        {userInitial}
       </div>
+      {onLogout ? (
+        <button
+          type="button"
+          onClick={onLogout}
+          className="rounded p-1.5 hover:bg-white/10"
+          aria-label="Sign out"
+        >
+          <LogOut aria-hidden="true" size={18} />
+        </button>
+      ) : null}
     </header>
   );
 }

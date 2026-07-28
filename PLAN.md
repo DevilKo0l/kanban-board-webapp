@@ -130,13 +130,13 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 
 ### Tasks
 
-- [ ] Add a sign-in screen shown before the application shell.
-- [ ] Accept only the credentials `user` and `password`.
-- [ ] Create a backend-managed session using a secure, HttpOnly cookie suitable for local development.
-- [ ] Add logout behavior in the application shell.
-- [ ] Prevent unauthenticated access to the board UI and board APIs.
-- [ ] Keep the authentication implementation replaceable without building production authentication.
-- [ ] Preserve the visual style of the main application on the sign-in screen without reproducing the full board before authentication.
+- [x] Add a sign-in screen shown before the application shell.
+- [x] Accept only the credentials `user` and `password`.
+- [x] Create a backend-managed session using a secure, HttpOnly cookie suitable for local development.
+- [x] Add logout behavior in the application shell.
+- [x] Prevent unauthenticated access to the board UI and board APIs.
+- [x] Keep the authentication implementation replaceable without building production authentication.
+- [x] Preserve the visual style of the main application on the sign-in screen without reproducing the full board before authentication.
 
 ### Validation
 

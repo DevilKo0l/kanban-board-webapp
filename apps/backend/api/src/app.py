@@ -1,8 +1,12 @@
+import secrets
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, ConfigDict
 
 from src.config.settings import Settings, get_settings
+from src.modules.auth import create_auth_router
 
 
 class HealthResponse(BaseModel):
@@ -22,6 +26,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     resolved_settings = settings or get_settings()
     app = FastAPI(title="Kanban Board API", version="0.1.0")
     app.state.settings = resolved_settings
+    app.state.session_secret = resolved_settings.session_secret or secrets.token_urlsafe(32)
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=resolved_settings.cors_origin_list,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type"],
+    )
+    app.include_router(
+        create_auth_router(
+            settings=resolved_settings,
+            session_secret=app.state.session_secret,
+        )
+    )
 
     @app.get("/", include_in_schema=False)
     def read_root() -> HTMLResponse:
