@@ -4,6 +4,7 @@ import hmac
 import json
 import secrets
 import time
+from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -88,8 +89,10 @@ class AuthService:
         return _base64url_encode(digest)
 
 
-def create_auth_router(settings: Settings, session_secret: str) -> APIRouter:
-    router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+def create_current_user_dependency(
+    settings: Settings,
+    session_secret: str,
+) -> Callable[[Request], AuthUser]:
     auth_service = AuthService(settings=settings, session_secret=session_secret)
 
     def require_current_user(request: Request) -> AuthUser:
@@ -100,6 +103,14 @@ def create_auth_router(settings: Settings, session_secret: str) -> APIRouter:
                 detail="Authentication required.",
             )
         return user
+
+    return require_current_user
+
+
+def create_auth_router(settings: Settings, session_secret: str) -> APIRouter:
+    router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+    auth_service = AuthService(settings=settings, session_secret=session_secret)
+    require_current_user = create_current_user_dependency(settings, session_secret)
 
     @router.post("/login", response_model=AuthSessionResponse)
     def login(payload: LoginRequest, response: Response) -> AuthSessionResponse:

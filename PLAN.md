@@ -182,17 +182,17 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 
 ### Tasks
 
-- [ ] Organize backend code under `src/modules`, `src/config`, and `src/database`, keeping `app.py` and `main.py` focused on application construction and startup.
-- [ ] Initialize the SQLite database automatically when it does not exist.
-- [ ] Create the MVP user, one board, four fixed columns, and reference-inspired demo cards when required.
-- [ ] Add an API operation to load the signed-in user's complete board.
-- [ ] Add API operations to rename columns.
-- [ ] Add API operations to create, read, and edit cards.
-- [ ] Add API operations to move and reorder cards within and across columns.
-- [ ] Validate ownership, fixed status identifiers, input, optional display metadata, and card ordering.
-- [ ] Keep multi-step database changes transactional.
-- [ ] Prevent APIs from creating, deleting, or reordering fixed columns.
-- [ ] Add focused backend tests for successful, invalid, unauthorized, and rollback behavior.
+- [x] Organize backend code under `src/modules`, `src/config`, and `src/database`, keeping `app.py` and `main.py` focused on application construction and startup.
+- [x] Initialize the SQLite database automatically when it does not exist.
+- [x] Create the MVP user, one board, four fixed columns, and reference-inspired demo cards when required.
+- [x] Add an API operation to load the signed-in user's complete board.
+- [x] Add API operations to rename columns.
+- [x] Add API operations to create, read, and edit cards.
+- [x] Add API operations to move and reorder cards within and across columns.
+- [x] Validate ownership, fixed status identifiers, input, optional display metadata, and card ordering.
+- [x] Keep multi-step database changes transactional.
+- [x] Prevent APIs from creating, deleting, or reordering fixed columns.
+- [x] Add focused backend tests for successful, invalid, unauthorized, and rollback behavior.
 
 ### Validation
 

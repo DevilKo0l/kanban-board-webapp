@@ -14,6 +14,8 @@ Current scaffolding provides:
 - `GET /api/health`.
 - `GET /api/v1/status`.
 - `POST /api/v1/auth/login`, `GET /api/v1/auth/me`, and `POST /api/v1/auth/logout`.
+- Persistent board API endpoints under `/api/v1/board`, `/api/v1/columns`, and `/api/v1/cards`.
+- SQLite initialization for the MVP user, board, fixed columns, and demo cards.
 - Docker and platform start/stop scripts.
 
 ## Local Commands

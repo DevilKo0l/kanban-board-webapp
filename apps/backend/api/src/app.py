@@ -1,12 +1,17 @@
 import secrets
+from collections.abc import Iterator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, ConfigDict
+from sqlalchemy.orm import Session
 
 from src.config.settings import Settings, get_settings
-from src.modules.auth import create_auth_router
+from src.database.init import initialize_database
+from src.database.session import create_database_engine, create_session_factory, session_scope
+from src.modules.auth import create_auth_router, create_current_user_dependency
+from src.modules.board import create_board_router
 
 
 class HealthResponse(BaseModel):
@@ -27,6 +32,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(title="Kanban Board API", version="0.1.0")
     app.state.settings = resolved_settings
     app.state.session_secret = resolved_settings.session_secret or secrets.token_urlsafe(32)
+    engine = create_database_engine(resolved_settings.database_url)
+    session_factory = create_session_factory(engine)
+    initialize_database(engine, session_factory, resolved_settings)
+    app.state.engine = engine
+    app.state.session_factory = session_factory
+
+    def get_session() -> Iterator[Session]:
+        yield from session_scope(session_factory)
 
     app.add_middleware(
         CORSMiddleware,
@@ -39,6 +52,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         create_auth_router(
             settings=resolved_settings,
             session_secret=app.state.session_secret,
+        )
+    )
+    app.include_router(
+        create_board_router(
+            get_session=get_session,
+            require_current_user=create_current_user_dependency(
+                settings=resolved_settings,
+                session_secret=app.state.session_secret,
+            ),
         )
     )
 
