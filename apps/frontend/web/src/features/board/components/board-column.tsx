@@ -1,5 +1,5 @@
 import type { BoardCard, BoardColumn as BoardColumnType } from "@kanban/types";
-import { ChevronLeft, ChevronRight, Circle, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Circle, Pencil, Plus } from "lucide-react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
@@ -13,6 +13,7 @@ type BoardColumnProps = {
   onAddCard: (column: BoardColumnType) => void;
   onEditCard: (card: BoardCard) => void;
   onMoveCard: (cardId: string, direction: "left" | "right" | "up" | "down") => void;
+  onRenameColumn: (column: BoardColumnType) => void;
   onToggleCollapse: (columnId: string) => void;
 };
 
@@ -53,6 +54,7 @@ export function BoardColumn({
   onAddCard,
   onEditCard,
   onMoveCard,
+  onRenameColumn,
   onToggleCollapse,
 }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
@@ -107,14 +109,24 @@ export function BoardColumn({
           <span>{column.name}</span>
           <span aria-label={`${cards.length} cards`}>{cards.length}</span>
         </div>
-        <button
-          type="button"
-          onClick={() => onToggleCollapse(column.id)}
-          className="rounded p-1 text-[var(--color-muted)] hover:bg-white/70"
-          aria-label={`Collapse ${column.name}`}
-        >
-          <ChevronLeft aria-hidden="true" size={17} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onRenameColumn(column)}
+            className="rounded p-1 text-[var(--color-muted)] hover:bg-white/70"
+            aria-label={`Rename ${column.name}`}
+          >
+            <Pencil aria-hidden="true" size={15} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggleCollapse(column.id)}
+            className="rounded p-1 text-[var(--color-muted)] hover:bg-white/70"
+            aria-label={`Collapse ${column.name}`}
+          >
+            <ChevronLeft aria-hidden="true" size={17} />
+          </button>
+        </div>
       </header>
       <SortableContext items={cards.map((card) => card.id)} strategy={verticalListSortingStrategy}>
         <div className="scrollbar-soft flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-3">

@@ -10,6 +10,8 @@ Current scaffolding provides:
 - Next.js Kanban UI under `apps/frontend/web`.
 - MVP sign-in using `user` and `password`.
 - Backend-managed HttpOnly session cookie.
+- Frontend board loading from the persistent backend API.
+- API-backed column rename, card create/edit, and card move/reorder behavior.
 - `GET /` temporary static page in the current backend container until the frontend build is wired into FastAPI.
 - `GET /api/health`.
 - `GET /api/v1/status`.
@@ -34,4 +36,6 @@ macOS and Linux:
 ./scripts/stop.sh
 ```
 
-The local application URL is `http://localhost:8000`.
+The backend API URL is `http://localhost:8000`.
+
+During frontend development, run the Next.js app from `apps/frontend/web` and open `http://localhost:3000`; browser API requests are sent to `http://localhost:8000`.

@@ -133,6 +133,48 @@ def test_database_initializes_reference_board_for_signed_in_user() -> None:
     assert payload["cards"][0]["assigneeInitials"] == ["ML", "JR"]
 
 
+def test_board_response_contract_uses_frontend_camel_case_keys() -> None:
+    client = create_test_client()
+    sign_in(client)
+
+    response = client.get("/api/v1/board")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert set(payload) == {"id", "name", "columns", "cards"}
+    assert set(payload["columns"][0]) == {"id", "statusKey", "name", "position"}
+    assert {
+        "id",
+        "columnId",
+        "title",
+        "description",
+        "dueDate",
+        "position",
+        "assigneeInitials",
+        "subtaskCount",
+        "attachmentCount",
+        "flagged",
+        "coverVariant",
+        "createdAt",
+        "updatedAt",
+    } == set(payload["cards"][0])
+
+
+def test_cors_allows_frontend_patch_requests() -> None:
+    client = create_test_client()
+
+    response = client.options(
+        "/api/v1/cards/card-brief",
+        headers={
+            "Origin": "http://localhost:3000",
+            "Access-Control-Request-Method": "PATCH",
+        },
+    )
+
+    assert response.status_code == 200
+    assert "PATCH" in response.headers["access-control-allow-methods"]
+
+
 def test_column_rename_persists_after_app_restart(tmp_path: Path) -> None:
     database_url = sqlite_url(tmp_path / "kanban.db")
     client = create_test_client(database_url)

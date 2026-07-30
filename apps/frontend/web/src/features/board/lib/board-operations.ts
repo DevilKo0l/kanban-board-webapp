@@ -1,9 +1,10 @@
 import type { BoardCard, BoardColumn, BoardState } from "@kanban/types";
 
-export type CardDraft = {
-  title: string;
-  description?: string;
-  dueDate?: string;
+export type MoveDirection = "left" | "right" | "up" | "down";
+
+export type MoveIntent = {
+  columnId: string;
+  position: number;
 };
 
 export function sortColumns(columns: BoardColumn[]) {
@@ -30,104 +31,41 @@ export function filterCards(cards: BoardCard[], query: string) {
   });
 }
 
-export function normalizeColumnPositions(cards: BoardCard[]) {
-  const grouped = new Map<string, BoardCard[]>();
-  for (const card of cards) {
-    const existing = grouped.get(card.columnId) ?? [];
-    existing.push(card);
-    grouped.set(card.columnId, existing);
-  }
-
-  return Array.from(grouped.values()).flatMap((columnCards) =>
-    sortCards(columnCards).map((card, position) => ({ ...card, position })),
-  );
-}
-
-export function createCard(state: BoardState, columnId: string, draft: CardDraft): BoardState {
-  const nextPosition = cardsForColumn(state.cards, columnId).length;
-  const card: BoardCard = {
-    id: `card-${crypto.randomUUID()}`,
-    columnId,
-    title: draft.title.trim(),
-    ...(draft.description?.trim() ? { description: draft.description.trim() } : {}),
-    ...(draft.dueDate ? { dueDate: draft.dueDate } : {}),
-    position: nextPosition,
-    assigneeInitials: [],
-    subtaskCount: 0,
-    attachmentCount: 0,
-    flagged: false,
-    coverVariant: "none",
-  };
-
-  return { ...state, cards: normalizeColumnPositions([...state.cards, card]) };
-}
-
-export function updateCard(state: BoardState, cardId: string, draft: CardDraft): BoardState {
-  return {
-    ...state,
-    cards: normalizeColumnPositions(
-      state.cards.map((card) => {
-        if (card.id !== cardId) {
-          return card;
-        }
-
-        const nextCard: BoardCard = {
-          ...card,
-          title: draft.title.trim(),
-        };
-
-        const description = draft.description?.trim();
-        if (description) {
-          nextCard.description = description;
-        } else {
-          delete nextCard.description;
-        }
-
-        if (draft.dueDate) {
-          nextCard.dueDate = draft.dueDate;
-        } else {
-          delete nextCard.dueDate;
-        }
-
-        return nextCard;
-      }),
-    ),
-  };
-}
-
-export function moveCardToColumn(
+export function getMoveIntentToColumn(
   state: BoardState,
   cardId: string,
   targetColumnId: string,
   targetIndex: number,
-): BoardState {
+): MoveIntent | null {
   const movingCard = state.cards.find((card) => card.id === cardId);
   if (!movingCard) {
-    return state;
+    return null;
   }
 
   const otherCards = state.cards.filter((card) => card.id !== cardId);
   const targetCards = cardsForColumn(otherCards, targetColumnId);
   const boundedIndex = Math.max(0, Math.min(targetIndex, targetCards.length));
-  targetCards.splice(boundedIndex, 0, { ...movingCard, columnId: targetColumnId });
 
-  const unchangedCards = otherCards.filter((card) => card.columnId !== targetColumnId);
-  const repositionedTargetCards = targetCards.map((card, position) => ({ ...card, position }));
+  if (movingCard.columnId === targetColumnId) {
+    const currentIndex = cardsForColumn(state.cards, movingCard.columnId).findIndex(
+      (card) => card.id === cardId,
+    );
+    if (currentIndex === boundedIndex) {
+      return null;
+    }
+  }
 
-  return {
-    ...state,
-    cards: normalizeColumnPositions([...unchangedCards, ...repositionedTargetCards]),
-  };
+  return { columnId: targetColumnId, position: boundedIndex };
 }
 
-export function moveCardRelative(
+export function getMoveIntentRelative(
   state: BoardState,
   cardId: string,
-  direction: "left" | "right" | "up" | "down",
-): BoardState {
+  direction: MoveDirection,
+): MoveIntent | null {
   const card = state.cards.find((candidate) => candidate.id === cardId);
   if (!card) {
-    return state;
+    return null;
   }
 
   const columns = sortColumns(state.columns);
@@ -137,16 +75,20 @@ export function moveCardRelative(
 
   if (direction === "up" || direction === "down") {
     const offset = direction === "up" ? -1 : 1;
-    return moveCardToColumn(state, cardId, card.columnId, cardIndex + offset);
+    const targetIndex = cardIndex + offset;
+    if (targetIndex < 0 || targetIndex >= currentColumnCards.length) {
+      return null;
+    }
+    return getMoveIntentToColumn(state, cardId, card.columnId, targetIndex);
   }
 
   const columnOffset = direction === "left" ? -1 : 1;
   const targetColumn = columns[columnIndex + columnOffset];
   if (!targetColumn) {
-    return state;
+    return null;
   }
 
-  return moveCardToColumn(
+  return getMoveIntentToColumn(
     state,
     cardId,
     targetColumn.id,
@@ -154,26 +96,34 @@ export function moveCardRelative(
   );
 }
 
-export function moveCardFromDrag(
+export function getMoveIntentFromDrag(
   state: BoardState,
   activeId: string,
   overId: string | null,
-): BoardState {
+): MoveIntent | null {
   if (!overId || activeId === overId) {
-    return state;
+    return null;
   }
 
   const overColumn = state.columns.find((column) => column.id === overId);
   if (overColumn) {
-    return moveCardToColumn(state, activeId, overColumn.id, cardsForColumn(state.cards, overColumn.id).length);
+    return getMoveIntentToColumn(
+      state,
+      activeId,
+      overColumn.id,
+      cardsForColumn(state.cards, overColumn.id).length,
+    );
   }
 
   const overCard = state.cards.find((card) => card.id === overId);
   if (!overCard) {
-    return state;
+    return null;
   }
 
-  const targetCards = cardsForColumn(state.cards, overCard.columnId);
+  const targetCards = cardsForColumn(
+    state.cards.filter((card) => card.id !== activeId),
+    overCard.columnId,
+  );
   const targetIndex = targetCards.findIndex((card) => card.id === overCard.id);
-  return moveCardToColumn(state, activeId, overCard.columnId, targetIndex);
+  return getMoveIntentToColumn(state, activeId, overCard.columnId, targetIndex);
 }

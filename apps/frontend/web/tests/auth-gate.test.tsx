@@ -5,6 +5,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AuthGate } from "@/features/auth/components/auth-gate";
 
+import { testBoard } from "./board-fixtures";
+
 describe("AuthGate", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -28,6 +30,7 @@ describe("AuthGate", () => {
     const fetchMock = mockFetch(
       jsonResponse({ detail: "Authentication required." }, 401),
       jsonResponse({ user: { username: "user" } }),
+      jsonResponse(testBoard),
     );
 
     render(createElement(AuthGate));
@@ -36,9 +39,9 @@ describe("AuthGate", () => {
     await user.type(screen.getByLabelText("Password"), "password");
     await user.click(screen.getByRole("button", { name: "Sign in" }));
 
-    expect(await screen.findByRole("button", { name: "Board view" })).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: /To Do column with 3 cards/i })).toBeInTheDocument();
     expect(screen.getByLabelText("Signed in as user")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenLastCalledWith("http://localhost:8000/api/v1/auth/login", {
+    expect(fetchMock).toHaveBeenCalledWith("http://localhost:8000/api/v1/auth/login", {
       body: JSON.stringify({ username: "user", password: "password" }),
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -65,10 +68,10 @@ describe("AuthGate", () => {
 
   it("logs out and returns to sign-in", async () => {
     const user = userEvent.setup();
-    mockFetch(jsonResponse({ user: { username: "user" } }), emptyResponse());
+    mockFetch(jsonResponse({ user: { username: "user" } }), jsonResponse(testBoard), emptyResponse());
 
     render(createElement(AuthGate));
-    expect(await screen.findByRole("button", { name: "Board view" })).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: /To Do column with 3 cards/i })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Sign out" }));
 
     await waitFor(() => {

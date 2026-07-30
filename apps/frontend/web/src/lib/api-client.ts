@@ -10,7 +10,7 @@ export class ApiError extends Error {
 
 type ApiRequestOptions = {
   body?: unknown;
-  method?: "GET" | "POST";
+  method?: "GET" | "PATCH" | "POST";
 };
 
 export async function apiRequest<T>(
@@ -22,7 +22,7 @@ export async function apiRequest<T>(
     credentials: "include",
   };
 
-  if (body) {
+  if (body !== undefined) {
     requestInit.headers = { "Content-Type": "application/json" };
     requestInit.body = JSON.stringify(body);
   }

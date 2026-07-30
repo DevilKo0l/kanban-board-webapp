@@ -211,18 +211,18 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 
 ### Tasks
 
-- [ ] Replace frontend demo state with board data loaded from the backend API.
-- [ ] Keep backend Pydantic request and response schemas aligned with the TypeScript contracts exposed from `packages/types`.
-- [ ] Add a focused integration test that detects incompatible API contract changes.
-- [ ] Connect column renaming to the API.
-- [ ] Connect card creation, opening, and editing to the API.
-- [ ] Persist drag-and-drop moves and reordering through the API.
-- [ ] Keep column collapse as a presentation preference rather than board-domain data.
-- [ ] Keep board search client-side unless a clear performance requirement justifies server search.
-- [ ] Add clear loading, empty, retry, and error states that preserve the reference-inspired layout.
-- [ ] Roll back failed optimistic interactions or refresh canonical board state safely.
-- [ ] Remove obsolete mock state while keeping intentional seed initialization in the backend.
-- [ ] Add focused frontend and integration tests.
+- [x] Replace frontend demo state with board data loaded from the backend API.
+- [x] Keep backend Pydantic request and response schemas aligned with the TypeScript contracts exposed from `packages/types`.
+- [x] Add a focused integration test that detects incompatible API contract changes.
+- [x] Connect column renaming to the API.
+- [x] Connect card creation, opening, and editing to the API.
+- [x] Persist drag-and-drop moves and reordering through the API.
+- [x] Keep column collapse as a presentation preference rather than board-domain data.
+- [x] Keep board search client-side unless a clear performance requirement justifies server search.
+- [x] Add clear loading, empty, retry, and error states that preserve the reference-inspired layout.
+- [x] Roll back failed optimistic interactions or refresh canonical board state safely.
+- [x] Remove obsolete mock state while keeping intentional seed initialization in the backend.
+- [x] Add focused frontend and integration tests.
 
 ### Validation
 
