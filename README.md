@@ -17,6 +17,7 @@ Current scaffolding provides:
 - `GET /api/v1/status`.
 - `POST /api/v1/auth/login`, `GET /api/v1/auth/me`, and `POST /api/v1/auth/logout`.
 - Persistent board API endpoints under `/api/v1/board`, `/api/v1/columns`, and `/api/v1/cards`.
+- Backend-only OpenRouter verification at `POST /api/v1/ai/verify`.
 - SQLite initialization for the MVP user, board, fixed columns, and demo cards.
 - Docker and platform start/stop scripts.
 
@@ -39,3 +40,5 @@ macOS and Linux:
 The backend API URL is `http://localhost:8000`.
 
 During frontend development, run the Next.js app from `apps/frontend/web` and open `http://localhost:3000`; browser API requests are sent to `http://localhost:8000`.
+
+Set `OPENROUTER_API_KEY` in the root `.env` file before using the AI verification endpoint or later AI phases.

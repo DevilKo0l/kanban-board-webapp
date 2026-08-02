@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from src.config.settings import Settings, get_settings
 from src.database.init import initialize_database
 from src.database.session import create_database_engine, create_session_factory, session_scope
+from src.modules.ai import OpenRouterClientProtocol, create_ai_router
 from src.modules.auth import create_auth_router, create_current_user_dependency
 from src.modules.board import create_board_router
 
@@ -27,7 +28,10 @@ class ApiStatusResponse(BaseModel):
     api_prefix: str
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    openrouter_client: OpenRouterClientProtocol | None = None,
+) -> FastAPI:
     resolved_settings = settings or get_settings()
     app = FastAPI(title="Kanban Board API", version="0.1.0")
     app.state.settings = resolved_settings
@@ -61,6 +65,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 settings=resolved_settings,
                 session_secret=app.state.session_secret,
             ),
+        )
+    )
+    app.include_router(
+        create_ai_router(
+            settings=resolved_settings,
+            require_current_user=create_current_user_dependency(
+                settings=resolved_settings,
+                session_secret=app.state.session_secret,
+            ),
+            openrouter_client=openrouter_client,
         )
     )
 

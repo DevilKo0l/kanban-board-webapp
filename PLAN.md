@@ -241,12 +241,12 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 
 ### Tasks
 
-- [ ] Add a backend-only OpenRouter client.
-- [ ] Read `OPENROUTER_API_KEY` from the root environment configuration.
-- [ ] Use the model `openai/gpt-oss-120b`.
-- [ ] Add a minimal AI request that can verify connectivity.
-- [ ] Handle missing configuration, provider errors, timeouts, malformed responses, and invalid responses clearly.
-- [ ] Mock OpenRouter in automated tests and keep live connectivity testing optional.
+- [x] Add a backend-only OpenRouter client.
+- [x] Read `OPENROUTER_API_KEY` from the root environment configuration.
+- [x] Use the model `openai/gpt-oss-120b`.
+- [x] Add a minimal AI request that can verify connectivity.
+- [x] Handle missing configuration, provider errors, timeouts, malformed responses, and invalid responses clearly.
+- [x] Mock OpenRouter in automated tests and keep live connectivity testing optional.
 
 ### Validation
 

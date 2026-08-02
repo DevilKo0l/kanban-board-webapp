@@ -1,12 +1,26 @@
+import json
+from io import BytesIO
 from pathlib import Path
+from typing import Any
+from urllib.error import HTTPError
+from urllib.request import Request
 
 from fastapi.testclient import TestClient
 
 from src.app import create_app
 from src.config.settings import Settings
+from src.modules.ai import (
+    OpenRouterClient,
+    OpenRouterClientProtocol,
+    OpenRouterRequestError,
+)
 
 
-def create_test_client(database_url: str = "sqlite:///:memory:") -> TestClient:
+def create_test_client(
+    database_url: str = "sqlite:///:memory:",
+    openrouter_client: OpenRouterClientProtocol | None = None,
+    openrouter_api_key: str = "",
+) -> TestClient:
     return TestClient(
         create_app(
             Settings(
@@ -14,7 +28,9 @@ def create_test_client(database_url: str = "sqlite:///:memory:") -> TestClient:
                 database_url=database_url,
                 session_secret="test-session-secret",
                 cors_origins="http://localhost:3000",
-            )
+                openrouter_api_key=openrouter_api_key,
+            ),
+            openrouter_client=openrouter_client,
         )
     )
 
@@ -288,6 +304,126 @@ def test_invalid_move_rolls_back_card_order() -> None:
     assert after == before
 
 
+def test_ai_verify_requires_session() -> None:
+    client = create_test_client(openrouter_client=FakeOpenRouterClient("ok"))
+
+    response = client.post("/api/v1/ai/verify")
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Authentication required."}
+
+
+def test_ai_verify_reports_missing_openrouter_configuration() -> None:
+    client = create_test_client()
+    sign_in(client)
+
+    response = client.post("/api/v1/ai/verify")
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "OpenRouter API key is not configured."}
+
+
+def test_ai_verify_uses_mocked_openrouter_client() -> None:
+    fake_client = FakeOpenRouterClient("ok")
+    client = create_test_client(openrouter_client=fake_client)
+    sign_in(client)
+
+    response = client.post("/api/v1/ai/verify")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": True,
+        "model": "openai/gpt-oss-120b",
+        "message": "ok",
+    }
+    assert fake_client.calls == 1
+
+
+def test_ai_verify_returns_safe_provider_error_without_api_key() -> None:
+    client = create_test_client(
+        openrouter_client=FakeOpenRouterClient(
+            OpenRouterRequestError("OpenRouter authentication failed.")
+        )
+    )
+    sign_in(client)
+
+    response = client.post("/api/v1/ai/verify")
+
+    assert response.status_code == 502
+    assert response.json() == {"detail": "OpenRouter authentication failed."}
+
+
+def test_openrouter_client_sends_expected_chat_completion_request() -> None:
+    captured: dict[str, Any] = {}
+
+    def fake_url_open(request: Request, *, timeout: float) -> FakeUrlResponse:
+        captured["url"] = request.full_url
+        captured["timeout"] = timeout
+        captured["headers"] = dict(request.header_items())
+        captured["body"] = json_body(request)
+        return FakeUrlResponse(
+            b'{"choices":[{"message":{"role":"assistant","content":"ok"}}]}'
+        )
+
+    client = OpenRouterClient(
+        Settings(openrouter_api_key="test-secret", openrouter_timeout_seconds=7),
+        url_open=fake_url_open,
+    )
+
+    response = client.verify_connectivity()
+
+    assert response == "ok"
+    assert captured["url"] == "https://openrouter.ai/api/v1/chat/completions"
+    assert captured["timeout"] == 7.0
+    assert captured["headers"]["Authorization"] == "Bearer test-secret"
+    assert captured["body"]["model"] == "openai/gpt-oss-120b"
+    assert captured["body"]["stream"] is False
+    assert captured["body"]["messages"][0]["role"] == "system"
+
+
+def test_openrouter_client_retries_temporary_provider_errors() -> None:
+    calls = 0
+
+    def fake_url_open(_: Request, *, timeout: float) -> FakeUrlResponse:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise HTTPError(
+                url="https://openrouter.ai/api/v1/chat/completions",
+                code=503,
+                msg="Service unavailable",
+                hdrs=cast_any({}),
+                fp=BytesIO(
+                    b'{"type":"error","error":{"error_type":"provider_unavailable"}}'
+                ),
+            )
+        return FakeUrlResponse(
+            b'{"choices":[{"message":{"role":"assistant","content":"ok"}}]}'
+        )
+
+    client = OpenRouterClient(
+        Settings(openrouter_api_key="test-secret", openrouter_max_retries=1),
+        url_open=fake_url_open,
+    )
+
+    assert client.verify_connectivity() == "ok"
+    assert calls == 2
+
+
+def test_openrouter_client_rejects_malformed_provider_response() -> None:
+    client = OpenRouterClient(
+        Settings(openrouter_api_key="test-secret"),
+        url_open=lambda _request, *, timeout: FakeUrlResponse(b'{"choices":[]}'),
+    )
+
+    try:
+        client.verify_connectivity()
+    except OpenRouterRequestError as error:
+        assert str(error) == "OpenRouter returned an invalid response."
+    else:
+        raise AssertionError("Expected malformed OpenRouter response to fail.")
+
+
 def sign_in(client: TestClient) -> None:
     response = client.post(
         "/api/v1/auth/login",
@@ -298,3 +434,41 @@ def sign_in(client: TestClient) -> None:
 
 def sqlite_url(path: Path) -> str:
     return f"sqlite:///{path.as_posix()}"
+
+
+class FakeOpenRouterClient:
+    model = "openai/gpt-oss-120b"
+
+    def __init__(self, result: str | OpenRouterRequestError) -> None:
+        self._result = result
+        self.calls = 0
+
+    def verify_connectivity(self) -> str:
+        self.calls += 1
+        if isinstance(self._result, OpenRouterRequestError):
+            raise self._result
+        return self._result
+
+
+class FakeUrlResponse:
+    def __init__(self, body: bytes) -> None:
+        self._body = body
+        self.closed = False
+
+    def read(self) -> bytes:
+        return self._body
+
+    def close(self) -> None:
+        self.closed = True
+
+
+def json_body(request: Request) -> dict[str, Any]:
+    data = request.data
+    assert isinstance(data, bytes)
+    payload = json.loads(data.decode("utf-8"))
+    assert isinstance(payload, dict)
+    return payload
+
+
+def cast_any(value: object) -> Any:
+    return value
