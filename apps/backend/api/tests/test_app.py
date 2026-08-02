@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from src.app import create_app
 from src.config.settings import Settings
 from src.modules.ai import (
+    ChatMessage,
     OpenRouterClient,
     OpenRouterClientProtocol,
     OpenRouterRequestError,
@@ -353,6 +354,231 @@ def test_ai_verify_returns_safe_provider_error_without_api_key() -> None:
     assert response.json() == {"detail": "OpenRouter authentication failed."}
 
 
+def test_ai_chat_returns_message_without_changing_board() -> None:
+    fake_client = FakeOpenRouterClient(
+        chat_responses=[
+            {
+                "assistantMessage": "I can help with that, but I did not change the board.",
+                "actions": [],
+            }
+        ]
+    )
+    client = create_test_client(openrouter_client=fake_client)
+    sign_in(client)
+    before = client.get("/api/v1/board").json()
+
+    response = client.post(
+        "/api/v1/ai/chat",
+        json={
+            "message": "What is on the board?",
+            "history": [{"role": "user", "content": "Earlier context"}],
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["assistantMessage"] == "I can help with that, but I did not change the board."
+    assert payload["actions"] == []
+    assert payload["board"] == before
+    assert "Current board JSON" in fake_client.chat_messages[0][-1].content
+    assert any(message.content == "Earlier context" for message in fake_client.chat_messages[0])
+
+
+def test_ai_chat_creates_card_from_valid_action() -> None:
+    client = create_test_client(
+        openrouter_client=FakeOpenRouterClient(
+            chat_responses=[
+                {
+                    "assistantMessage": "Created the launch QA task.",
+                    "actions": [
+                        {
+                            "type": "create_card",
+                            "columnStatusKey": "todo",
+                            "title": "Prepare launch QA",
+                            "description": "Check the release checklist.",
+                            "dueDate": "2026-09-10",
+                        }
+                    ],
+                }
+            ]
+        )
+    )
+    sign_in(client)
+
+    response = client.post("/api/v1/ai/chat", json={"message": "Create a launch QA task."})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["actions"][0]["type"] == "create_card"
+    assert payload["actions"][0]["columnId"] == "col-todo"
+    created_cards = [
+        card for card in payload["board"]["cards"] if card["title"] == "Prepare launch QA"
+    ]
+    assert len(created_cards) == 1
+    assert created_cards[0]["columnId"] == "col-todo"
+    assert created_cards[0]["dueDate"] == "2026-09-10"
+
+
+def test_ai_chat_applies_multi_card_edit_and_move_transactionally() -> None:
+    client = create_test_client(
+        openrouter_client=FakeOpenRouterClient(
+            chat_responses=[
+                {
+                    "assistantMessage": "Updated and moved the budget task.",
+                    "actions": [
+                        {
+                            "type": "edit_card",
+                            "cardId": "card-budget",
+                            "title": "Confirm final budgets",
+                            "description": None,
+                        },
+                        {
+                            "type": "move_card",
+                            "cardId": "card-budget",
+                            "columnStatusKey": "in_progress",
+                            "position": 1,
+                        },
+                    ],
+                }
+            ]
+        )
+    )
+    sign_in(client)
+
+    response = client.post("/api/v1/ai/chat", json={"message": "Update and move budget."})
+
+    assert response.status_code == 200
+    board = response.json()["board"]
+    budget = next(card for card in board["cards"] if card["id"] == "card-budget")
+    assert budget["title"] == "Confirm final budgets"
+    assert budget["description"] is None
+    assert budget["columnId"] == "col-progress"
+    progress_cards = [card for card in board["cards"] if card["columnId"] == "col-progress"]
+    assert [card["id"] for card in progress_cards][:2] == ["card-copy", "card-budget"]
+
+
+def test_ai_chat_rejects_unsupported_actions_without_changing_board() -> None:
+    client = create_test_client(
+        openrouter_client=FakeOpenRouterClient(
+            chat_responses=[
+                {
+                    "assistantMessage": "I cannot delete columns.",
+                    "actions": [{"type": "delete_column", "columnStatusKey": "todo"}],
+                }
+            ]
+        )
+    )
+    sign_in(client)
+    before = client.get("/api/v1/board").json()["cards"]
+
+    response = client.post("/api/v1/ai/chat", json={"message": "Delete To Do."})
+
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Unsupported AI action: delete_column."}
+    assert client.get("/api/v1/board").json()["cards"] == before
+
+
+def test_ai_chat_rejects_ambiguous_card_edits_without_card_id() -> None:
+    client = create_test_client(
+        openrouter_client=FakeOpenRouterClient(
+            chat_responses=[
+                {
+                    "assistantMessage": "The request is ambiguous.",
+                    "actions": [
+                        {
+                            "type": "edit_card",
+                            "title": "Confirm budgets",
+                            "description": "Ambiguous target",
+                        }
+                    ],
+                }
+            ]
+        )
+    )
+    sign_in(client)
+
+    response = client.post("/api/v1/ai/chat", json={"message": "Update the budget card."})
+
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Card id is required."}
+
+
+def test_ai_chat_rolls_back_failed_multi_action_response() -> None:
+    client = create_test_client(
+        openrouter_client=FakeOpenRouterClient(
+            chat_responses=[
+                {
+                    "assistantMessage": "This should fail as a unit.",
+                    "actions": [
+                        {
+                            "type": "create_card",
+                            "columnStatusKey": "todo",
+                            "title": "Rollback task",
+                        },
+                        {
+                            "type": "move_card",
+                            "cardId": "missing-card",
+                            "columnStatusKey": "closed",
+                        },
+                    ],
+                }
+            ]
+        )
+    )
+    sign_in(client)
+    before = client.get("/api/v1/board").json()["cards"]
+
+    response = client.post("/api/v1/ai/chat", json={"message": "Create and move."})
+
+    assert response.status_code == 404
+    after = client.get("/api/v1/board").json()["cards"]
+    assert after == before
+    assert all(card["title"] != "Rollback task" for card in after)
+
+
+def test_ai_chat_uses_stable_status_key_after_column_rename() -> None:
+    client = create_test_client(
+        openrouter_client=FakeOpenRouterClient(
+            chat_responses=[
+                {
+                    "assistantMessage": "Moved the copy task to the renamed To Do column.",
+                    "actions": [
+                        {
+                            "type": "move_card",
+                            "cardId": "card-copy",
+                            "columnStatusKey": "todo",
+                            "position": 0,
+                        }
+                    ],
+                }
+            ]
+        )
+    )
+    sign_in(client)
+    assert client.patch("/api/v1/columns/col-todo", json={"name": "Backlog"}).status_code == 200
+
+    response = client.post("/api/v1/ai/chat", json={"message": "Move copy to Backlog."})
+
+    assert response.status_code == 200
+    board = response.json()["board"]
+    assert board["columns"][0]["name"] == "Backlog"
+    moved_card = next(card for card in board["cards"] if card["id"] == "card-copy")
+    assert moved_card["columnId"] == "col-todo"
+    assert moved_card["position"] == 1000
+
+
+def test_ai_chat_rejects_invalid_model_json_without_changing_board() -> None:
+    client = create_test_client(openrouter_client=FakeOpenRouterClient(chat_responses=["not json"]))
+    sign_in(client)
+    before = client.get("/api/v1/board").json()["cards"]
+
+    response = client.post("/api/v1/ai/chat", json={"message": "Please help."})
+
+    assert response.status_code == 422
+    assert response.json() == {"detail": "AI response was not valid structured JSON."}
+    assert client.get("/api/v1/board").json()["cards"] == before
+
+
 def test_openrouter_client_sends_expected_chat_completion_request() -> None:
     captured: dict[str, Any] = {}
 
@@ -439,15 +665,35 @@ def sqlite_url(path: Path) -> str:
 class FakeOpenRouterClient:
     model = "openai/gpt-oss-120b"
 
-    def __init__(self, result: str | OpenRouterRequestError) -> None:
+    def __init__(
+        self,
+        result: str | OpenRouterRequestError = "ok",
+        chat_responses: list[str | dict[str, object]] | None = None,
+    ) -> None:
         self._result = result
+        self._chat_responses = list(chat_responses or [])
         self.calls = 0
+        self.chat_messages: list[list[ChatMessage]] = []
 
     def verify_connectivity(self) -> str:
         self.calls += 1
         if isinstance(self._result, OpenRouterRequestError):
             raise self._result
         return self._result
+
+    def create_chat_completion(
+        self,
+        messages: list[ChatMessage],
+        max_tokens: int = 150,
+        temperature: float = 0.7,
+    ) -> str:
+        self.chat_messages.append(messages)
+        if not self._chat_responses:
+            return '{"assistantMessage":"No changes needed.","actions":[]}'
+        response = self._chat_responses.pop(0)
+        if isinstance(response, str):
+            return response
+        return json.dumps(response)
 
 
 class FakeUrlResponse:

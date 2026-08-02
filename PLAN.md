@@ -263,16 +263,16 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 
 ### Tasks
 
-- [ ] Send the current board JSON, the user's message, and only the relevant conversation history to the model.
-- [ ] Define a structured response containing an assistant message and optional card actions.
-- [ ] Support only the required AI actions: create, edit, and move cards.
-- [ ] Allow supported edits only for approved card fields such as title, description, and due date.
-- [ ] Resolve columns by stable status key or validated identifier rather than editable display name alone.
-- [ ] Validate every AI action before applying it.
-- [ ] Apply multi-card updates in one database transaction to avoid partial changes.
-- [ ] Return the assistant response and the updated canonical board state.
-- [ ] Reject requests to create columns, delete columns, add boards, or perform unsupported reference controls.
-- [ ] Add tests for valid, invalid, empty, single-card, multi-card, ambiguous-card, and rollback responses.
+- [x] Send the current board JSON, the user's message, and only the relevant conversation history to the model.
+- [x] Define a structured response containing an assistant message and optional card actions.
+- [x] Support only the required AI actions: create, edit, and move cards.
+- [x] Allow supported edits only for approved card fields such as title, description, and due date.
+- [x] Resolve columns by stable status key or validated identifier rather than editable display name alone.
+- [x] Validate every AI action before applying it.
+- [x] Apply multi-card updates in one database transaction to avoid partial changes.
+- [x] Return the assistant response and the updated canonical board state.
+- [x] Reject requests to create columns, delete columns, add boards, or perform unsupported reference controls.
+- [x] Add tests for valid, invalid, empty, single-card, multi-card, ambiguous-card, and rollback responses.
 
 ### Validation
 

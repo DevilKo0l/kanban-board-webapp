@@ -70,6 +70,7 @@ def create_app(
     app.include_router(
         create_ai_router(
             settings=resolved_settings,
+            get_session=get_session,
             require_current_user=create_current_user_dependency(
                 settings=resolved_settings,
                 session_secret=app.state.session_secret,

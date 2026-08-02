@@ -36,8 +36,8 @@ Phase 8 added backend-only OpenRouter connectivity for a minimal AI verification
 - `uv run mypy src tests` passed.
 - `docker compose up --build -d` passed and restarted the backend container.
 - Live local smoke passed on `http://localhost:8000`: health returned ok, signed-out AI verification returned 401, login returned 200, and signed-in AI verification without a configured key returned 503 with a safe missing-key detail.
+- After adding a local `OPENROUTER_API_KEY` to ignored `.env`, live OpenRouter verification passed with `ok: true`, model `openai/gpt-oss-120b`, and message `ok`.
 
 ## Notes
 
-- Live OpenRouter provider verification was not run because no local `OPENROUTER_API_KEY` is configured.
 - `POST /api/v1/ai/verify` returns `503` with `OpenRouter API key is not configured.` when no key is available.

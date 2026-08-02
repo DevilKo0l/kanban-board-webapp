@@ -18,6 +18,7 @@ Current scaffolding provides:
 - `POST /api/v1/auth/login`, `GET /api/v1/auth/me`, and `POST /api/v1/auth/logout`.
 - Persistent board API endpoints under `/api/v1/board`, `/api/v1/columns`, and `/api/v1/cards`.
 - Backend-only OpenRouter verification at `POST /api/v1/ai/verify`.
+- Structured AI card action endpoint at `POST /api/v1/ai/chat`.
 - SQLite initialization for the MVP user, board, fixed columns, and demo cards.
 - Docker and platform start/stop scripts.
 
