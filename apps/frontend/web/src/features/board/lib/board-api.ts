@@ -2,6 +2,8 @@ import type {
   BoardCard,
   BoardColumn,
   BoardState,
+  AiChatRequest,
+  AiChatResponse,
   CardCreateRequest,
   CardUpdateRequest,
   MoveCardRequest,
@@ -43,6 +45,13 @@ export function updateCard(cardId: string, payload: CardUpdateRequest) {
 
 export function moveCard(cardId: string, payload: MoveCardRequest) {
   return apiRequest<BoardState>(`/api/v1/cards/${cardId}/move`, {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function sendAiChat(payload: AiChatRequest) {
+  return apiRequest<AiChatResponse>("/api/v1/ai/chat", {
     method: "POST",
     body: payload,
   });

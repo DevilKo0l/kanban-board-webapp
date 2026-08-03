@@ -159,17 +159,69 @@ describe("BoardExperience", () => {
     );
   });
 
-  it("opens and closes the AI drawer preview", async () => {
+  it("opens and closes the AI drawer", async () => {
     const user = userEvent.setup();
     mockBoardApi();
     render(createElement(BoardExperience));
 
     await screen.findByRole("region", { name: /To Do column with 3 cards/i });
-    await user.click(screen.getByRole("button", { name: "Open AI assistant preview" }));
-    expect(screen.getByRole("complementary", { name: "AI assistant preview drawer" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Open AI assistant" }));
+    expect(screen.getByRole("complementary", { name: "AI assistant drawer" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Kanban board")).toBeInTheDocument();
+    expect(screen.getByLabelText("Search cards")).toHaveValue("");
 
     await user.click(screen.getByRole("button", { name: "Close AI drawer" }));
-    expect(screen.queryByRole("complementary", { name: "AI assistant preview drawer" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("complementary", { name: "AI assistant drawer" })).not.toBeInTheDocument();
+  });
+
+  it("sends AI chat messages, reconciles the returned board, and highlights changed cards", async () => {
+    const user = userEvent.setup();
+    const api = mockBoardApi();
+    render(createElement(BoardExperience));
+
+    await screen.findByRole("region", { name: /To Do column with 3 cards/i });
+    await user.type(screen.getByLabelText("Search cards"), "launch");
+    await user.click(screen.getByRole("button", { name: "Open AI assistant" }));
+    await user.type(screen.getByLabelText("AI message"), "Create an AI launch checklist");
+    await user.click(screen.getByRole("button", { name: "Send AI message" }));
+
+    expect(await screen.findByText("Create an AI launch checklist")).toBeInTheDocument();
+    expect(await screen.findByText("Created AI launch checklist.")).toBeInTheDocument();
+    expect(screen.getByText("1 board change applied.")).toBeInTheDocument();
+    expect(screen.getByLabelText("Search cards")).toHaveValue("launch");
+
+    const aiCardButton = await screen.findByRole("button", { name: "AI launch checklist" });
+    expect(aiCardButton.closest("article")).toHaveAttribute("data-ai-highlighted", "true");
+    expect(api.fetchMock).toHaveBeenCalledWith(
+      "http://localhost:8000/api/v1/ai/chat",
+      expect.objectContaining({
+        body: JSON.stringify({
+          message: "Create an AI launch checklist",
+          history: [],
+        }),
+        method: "POST",
+      }),
+    );
+  });
+
+  it("shows AI errors and re-enables submission after provider failures", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(jsonResponse(cloneBoard()))
+      .mockResolvedValueOnce(jsonResponse({ detail: "OpenRouter API key is not configured." }, 503));
+    vi.stubGlobal("fetch", fetchMock);
+    render(createElement(BoardExperience));
+
+    await screen.findByRole("region", { name: /To Do column with 3 cards/i });
+    await user.click(screen.getByRole("button", { name: "Open AI assistant" }));
+    await user.type(screen.getByLabelText("AI message"), "Create a task");
+    await user.click(screen.getByRole("button", { name: "Send AI message" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("OpenRouter API key is not configured.");
+    expect(screen.getByRole("button", { name: "Send AI message" })).toBeDisabled();
+    await user.type(screen.getByLabelText("AI message"), "Try again");
+    expect(screen.getByRole("button", { name: "Send AI message" })).toBeEnabled();
   });
 });
 
@@ -220,6 +272,31 @@ function mockBoardApi(seed: BoardState = cloneBoard()) {
       };
       api.board.cards = [...api.board.cards, card];
       return jsonResponse(card, 201);
+    }
+
+    if (url.endsWith("/api/v1/ai/chat") && method === "POST") {
+      const payload = parseJsonBody<{ message: string }>(init);
+      const card: BoardCard = {
+        id: "card-ai-created",
+        columnId: "col-todo",
+        title: "AI launch checklist",
+        description: payload.message,
+        dueDate: null,
+        position: nextPosition(api.board, "col-todo"),
+        assigneeInitials: [],
+        subtaskCount: 0,
+        attachmentCount: 0,
+        flagged: false,
+        coverVariant: "none",
+        createdAt: "2026-07-29T00:00:00Z",
+        updatedAt: "2026-07-29T00:00:01Z",
+      };
+      api.board.cards = [...api.board.cards, card];
+      return jsonResponse({
+        assistantMessage: "Created AI launch checklist.",
+        actions: [{ type: "create_card", cardId: card.id, columnId: "col-todo" }],
+        board: api.board,
+      });
     }
 
     const cardUpdateMatch = /\/api\/v1\/cards\/([^/]+)$/.exec(url);

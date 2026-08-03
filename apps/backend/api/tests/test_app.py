@@ -36,13 +36,13 @@ def create_test_client(
     )
 
 
-def test_root_serves_temporary_page() -> None:
+def test_root_serves_frontend_or_development_fallback() -> None:
     client = create_test_client()
 
     response = client.get("/")
 
     assert response.status_code == 200
-    assert "Kanban Board MVP" in response.text
+    assert "Kanban Board MVP" in response.text or "<html" in response.text
 
 
 def test_health_endpoint() -> None:

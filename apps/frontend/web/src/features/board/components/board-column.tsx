@@ -10,6 +10,7 @@ type BoardColumnProps = {
   cards: BoardCard[];
   column: BoardColumnType;
   collapsed: boolean;
+  highlightedCardIds?: Set<string>;
   onAddCard: (column: BoardColumnType) => void;
   onEditCard: (card: BoardCard) => void;
   onMoveCard: (cardId: string, direction: "left" | "right" | "up" | "down") => void;
@@ -51,6 +52,7 @@ export function BoardColumn({
   cards,
   column,
   collapsed,
+  highlightedCardIds,
   onAddCard,
   onEditCard,
   onMoveCard,
@@ -132,7 +134,13 @@ export function BoardColumn({
         <div className="scrollbar-soft flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-3">
           {cards.length > 0 ? (
             cards.map((card) => (
-              <TaskCard key={card.id} card={card} onEdit={onEditCard} onMove={onMoveCard} />
+              <TaskCard
+                key={card.id}
+                card={card}
+                highlighted={highlightedCardIds?.has(card.id) ?? false}
+                onEdit={onEditCard}
+                onMove={onMoveCard}
+              />
             ))
           ) : (
             <div className="rounded-md border border-dashed border-[var(--color-border)] bg-white/65 p-4 text-sm text-[var(--color-muted)]">

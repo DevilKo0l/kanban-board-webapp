@@ -291,17 +291,17 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 
 ### Tasks
 
-- [ ] Implement the AI control in the global header and open a right-side chat drawer.
-- [ ] Keep the board visible and preserve its scroll position and current search while the drawer is open.
-- [ ] Support sending messages and displaying the current in-session conversation.
-- [ ] Show clear empty, loading, success, and error states.
-- [ ] Prevent duplicate submissions while a request is running.
-- [ ] Refresh or reconcile the board automatically when AI actions change it.
-- [ ] Make AI-created or edited cards visually discoverable without using distracting animation.
-- [ ] Verify the drawer works at desktop and narrower supported viewport sizes.
-- [ ] Add focused UI, integration, and end-to-end tests for the complete workflow.
-- [ ] Compare the finished interface with `docs/references/kanban-board-reference.png` at the target desktop viewport, checking layout hierarchy, spacing, card density, status treatment, and active states.
-- [ ] Update the minimal README with exact local setup, environment, build, and run commands.
+- [x] Implement the AI control in the global header and open a right-side chat drawer.
+- [x] Keep the board visible and preserve its scroll position and current search while the drawer is open.
+- [x] Support sending messages and displaying the current in-session conversation.
+- [x] Show clear empty, loading, success, and error states.
+- [x] Prevent duplicate submissions while a request is running.
+- [x] Refresh or reconcile the board automatically when AI actions change it.
+- [x] Make AI-created or edited cards visually discoverable without using distracting animation.
+- [x] Verify the drawer works at desktop and narrower supported viewport sizes.
+- [x] Add focused UI, integration, and end-to-end tests for the complete workflow.
+- [x] Compare the finished interface with `docs/references/kanban-board-reference.png` at the target desktop viewport, checking layout hierarchy, spacing, card density, status treatment, and active states.
+- [x] Update the minimal README with exact local setup, environment, build, and run commands.
 
 ### Validation
 
@@ -320,24 +320,24 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 
 ## Final Acceptance Criteria
 
-- [ ] Hardcoded sign-in and logout work securely for the local MVP.
-- [ ] The database supports multiple users with one persistent board per user.
-- [ ] The application has the approved dark header, workspace sidebar, board toolbar, horizontal board canvas, status columns, compact cards, and AI drawer.
-- [ ] The board provides four stable fixed statuses: `To Do`, `In Progress`, `In Review`, and `Closed`.
-- [ ] Fixed columns can be renamed and collapsed but cannot be added, deleted, or reordered.
-- [ ] Board search filters card titles and descriptions and reports the visible count.
-- [ ] Cards can be created, opened, edited, reordered, and moved.
-- [ ] Drag-and-drop works within and across columns and preserves deterministic ordering.
-- [ ] Lightweight card metadata and local cover assets reproduce the reference-inspired card appearance without adding unsupported systems.
-- [ ] AI chat can create, edit, and move one or more cards safely.
-- [ ] SQLite initializes automatically and persists data.
-- [ ] FastAPI serves the built Next.js frontend at `/`.
-- [ ] The application builds and runs in one Docker container.
-- [ ] The repository follows the approved monorepo layout with `apps/frontend/web`, `apps/backend/api`, and `packages/types`, without duplicate application roots.
-- [ ] The UI reference exists at `docs/references/kanban-board-reference.png` and is not shipped as a production frontend asset.
-- [ ] Root workspace scripts and platform scripts operate on the correct leaf applications.
-- [ ] The interface is responsive, horizontally scrollable where required, and keyboard accessible for core controls.
-- [ ] Unavailable reference controls are disabled or clearly labelled and do not imply completed features.
-- [ ] Required tests and validation commands pass.
-- [ ] Secrets are not exposed or committed.
-- [ ] Documentation contains only the commands and decisions needed to run and maintain the MVP.
+- [x] Hardcoded sign-in and logout work securely for the local MVP.
+- [x] The database supports multiple users with one persistent board per user.
+- [x] The application has the approved dark header, workspace sidebar, board toolbar, horizontal board canvas, status columns, compact cards, and AI drawer.
+- [x] The board provides four stable fixed statuses: `To Do`, `In Progress`, `In Review`, and `Closed`.
+- [x] Fixed columns can be renamed and collapsed but cannot be added, deleted, or reordered.
+- [x] Board search filters card titles and descriptions and reports the visible count.
+- [x] Cards can be created, opened, edited, reordered, and moved.
+- [x] Drag-and-drop works within and across columns and preserves deterministic ordering.
+- [x] Lightweight card metadata and local cover assets reproduce the reference-inspired card appearance without adding unsupported systems.
+- [x] AI chat can create, edit, and move one or more cards safely.
+- [x] SQLite initializes automatically and persists data.
+- [x] FastAPI serves the built Next.js frontend at `/`.
+- [x] The application builds and runs in one Docker container.
+- [x] The repository follows the approved monorepo layout with `apps/frontend/web`, `apps/backend/api`, and `packages/types`, without duplicate application roots.
+- [x] The UI reference exists at `docs/references/kanban-board-reference.png` and is not shipped as a production frontend asset.
+- [x] Root workspace scripts and platform scripts operate on the correct leaf applications.
+- [x] The interface is responsive, horizontally scrollable where required, and keyboard accessible for core controls.
+- [x] Unavailable reference controls are disabled or clearly labelled and do not imply completed features.
+- [x] Required tests and validation commands pass.
+- [x] Secrets are not exposed or committed.
+- [x] Documentation contains only the commands and decisions needed to run and maintain the MVP.

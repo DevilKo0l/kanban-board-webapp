@@ -1,9 +1,11 @@
 import secrets
 from collections.abc import Iterator
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
 
@@ -79,6 +81,25 @@ def create_app(
         )
     )
 
+    @app.get("/api/health", response_model=HealthResponse)
+    def read_health() -> HealthResponse:
+        return HealthResponse(status="ok", app_env=resolved_settings.app_env)
+
+    @app.get("/api/v1/status", response_model=ApiStatusResponse)
+    def read_api_status() -> ApiStatusResponse:
+        return ApiStatusResponse(name="kanban-api", version="0.1.0", api_prefix="/api/v1")
+
+    mount_frontend(app)
+
+    return app
+
+
+def mount_frontend(app: FastAPI) -> None:
+    static_dir = get_frontend_static_dir()
+    if static_dir.exists():
+        app.mount("/", StaticFiles(directory=static_dir, html=True), name="frontend")
+        return
+
     @app.get("/", include_in_schema=False)
     def read_root() -> HTMLResponse:
         return HTMLResponse(
@@ -120,19 +141,13 @@ def create_app(
               <body>
                 <main>
                   <h1>Kanban Board MVP</h1>
-                  <p>FastAPI is serving the temporary Phase 2 frontend placeholder.</p>
+                  <p>FastAPI is running. Build the frontend to serve the full application here.</p>
                 </main>
               </body>
             </html>
             """.strip()
         )
 
-    @app.get("/api/health", response_model=HealthResponse)
-    def read_health() -> HealthResponse:
-        return HealthResponse(status="ok", app_env=resolved_settings.app_env)
 
-    @app.get("/api/v1/status", response_model=ApiStatusResponse)
-    def read_api_status() -> ApiStatusResponse:
-        return ApiStatusResponse(name="kanban-api", version="0.1.0", api_prefix="/api/v1")
-
-    return app
+def get_frontend_static_dir() -> Path:
+    return Path(__file__).resolve().parents[3] / "frontend" / "web" / "out"

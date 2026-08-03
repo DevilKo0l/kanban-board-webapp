@@ -5,6 +5,7 @@ import {
   getBoard,
   moveCard,
   renameColumn,
+  sendAiChat,
   updateCard,
 } from "@/features/board/lib/board-api";
 
@@ -100,6 +101,34 @@ describe("board API contract", () => {
       "http://localhost:8000/api/v1/cards/card-brief/move",
       expect.objectContaining({
         body: JSON.stringify({ columnId: "col-progress", position: 0 }),
+        method: "POST",
+      }),
+    );
+  });
+
+  it("uses the shared AI chat request and response contract", async () => {
+    const fetchMock = mockFetch(
+      jsonResponse({
+        assistantMessage: "No board changes were needed.",
+        actions: [],
+        board: testBoard,
+      }),
+    );
+
+    const response = await sendAiChat({
+      message: "Summarize the board.",
+      history: [{ role: "assistant", content: "Ready to help." }],
+    });
+
+    expect(response.assistantMessage).toBe("No board changes were needed.");
+    expect(response.board.cards).toHaveLength(12);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:8000/api/v1/ai/chat",
+      expect.objectContaining({
+        body: JSON.stringify({
+          message: "Summarize the board.",
+          history: [{ role: "assistant", content: "Ready to help." }],
+        }),
         method: "POST",
       }),
     );

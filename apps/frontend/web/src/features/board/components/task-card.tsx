@@ -20,11 +20,12 @@ import { classNames } from "@/lib/class-names";
 
 type TaskCardProps = {
   card: BoardCard;
+  highlighted?: boolean;
   onEdit: (card: BoardCard) => void;
   onMove: (cardId: string, direction: "left" | "right" | "up" | "down") => void;
 };
 
-export function TaskCard({ card, onEdit, onMove }: TaskCardProps) {
+export function TaskCard({ card, highlighted = false, onEdit, onMove }: TaskCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: { type: "card", cardId: card.id },
@@ -41,7 +42,10 @@ export function TaskCard({ card, onEdit, onMove }: TaskCardProps) {
       className={classNames(
         "group shrink-0 overflow-hidden rounded-md border border-[var(--color-border)] bg-white shadow-[var(--shadow-card)]",
         isDragging && "opacity-60 ring-2 ring-[var(--color-active-purple)]",
+        highlighted &&
+          "ring-2 ring-[var(--color-active-purple)] shadow-[0_0_0_4px_var(--color-active-purple-bg),0_8px_24px_rgba(32,32,32,0.08)]",
       )}
+      data-ai-highlighted={highlighted ? "true" : undefined}
     >
       {card.coverVariant !== "none" ? <CardCover variant={card.coverVariant} /> : null}
       <div className="p-4">

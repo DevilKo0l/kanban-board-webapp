@@ -52,7 +52,7 @@ export function GlobalHeader({ onLogout, onOpenAi, username = "user" }: GlobalHe
         type="button"
         onClick={onOpenAi}
         className="inline-flex h-9 items-center gap-2 rounded-md bg-[var(--color-ai-button)] px-3 text-sm font-semibold shadow-sm hover:bg-[var(--color-ai-button-hover)]"
-        aria-label="Open AI assistant preview"
+        aria-label="Open AI assistant"
       >
         <Bot aria-hidden="true" size={16} />
         AI

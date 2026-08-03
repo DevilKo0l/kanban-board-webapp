@@ -16,6 +16,7 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { GlobalHeader } from "@/components/app-shell/global-header";
 import { WorkspaceSidebar } from "@/components/app-shell/workspace-sidebar";
 import { AiDrawer } from "@/features/board/components/ai-drawer";
+import type { AiDrawerMessage } from "@/features/board/components/ai-drawer";
 import { BoardColumn as BoardColumnView } from "@/features/board/components/board-column";
 import { BoardToolbar } from "@/features/board/components/board-toolbar";
 import { CardEditor } from "@/features/board/components/card-editor";
@@ -25,6 +26,7 @@ import {
   getBoard,
   moveCard,
   renameColumn,
+  sendAiChat,
   updateCard,
 } from "@/features/board/lib/board-api";
 import type { CardDraft } from "@/features/board/lib/board-api";
@@ -64,6 +66,12 @@ export function BoardExperience({ onLogout, username = "user" }: BoardExperience
   const [renameError, setRenameError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [aiMessages, setAiMessages] = useState<AiDrawerMessage[]>([]);
+  const [aiDraft, setAiDraft] = useState("");
+  const [aiSending, setAiSending] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiLastActionSummary, setAiLastActionSummary] = useState<string | null>(null);
+  const [highlightedCardIds, setHighlightedCardIds] = useState<Set<string>>(() => new Set());
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -92,8 +100,38 @@ export function BoardExperience({ onLogout, username = "user" }: BoardExperience
   }, [refreshBoard]);
 
   useEffect(() => {
-    void loadBoard();
-  }, [loadBoard]);
+    let ignore = false;
+
+    async function loadInitialBoard() {
+      try {
+        const nextBoard = await getBoard();
+        if (!ignore) {
+          setBoard(nextBoard);
+          setLoadState("ready");
+          setLoadError(null);
+        }
+      } catch (error) {
+        if (!ignore) {
+          setLoadState("error");
+          setLoadError(getErrorMessage(error, "Board data could not be loaded."));
+        }
+      }
+    }
+
+    void loadInitialBoard();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (highlightedCardIds.size === 0) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => setHighlightedCardIds(new Set()), 9000);
+    return () => window.clearTimeout(timeoutId);
+  }, [highlightedCardIds]);
 
   const toggleColumn = (columnId: string) => {
     setCollapsedColumns((current) => {
@@ -211,6 +249,56 @@ export function BoardExperience({ onLogout, username = "user" }: BoardExperience
     void persistMove(cardId, getMoveIntentRelative(board, cardId, direction));
   };
 
+  const submitAiMessage = async () => {
+    const message = aiDraft.trim();
+    if (!message || aiSending) {
+      return;
+    }
+
+    const history = aiMessages
+      .slice(-10)
+      .map(({ role, content }) => ({ role, content }));
+    const userMessage: AiDrawerMessage = {
+      id: createAiMessageId("user"),
+      role: "user",
+      content: message,
+    };
+
+    setAiMessages((current) => [...current, userMessage]);
+    setAiDraft("");
+    setAiSending(true);
+    setAiError(null);
+    setAiLastActionSummary(null);
+    setMutationError(null);
+
+    try {
+      const response = await sendAiChat({ message, history });
+      setBoard(response.board);
+      setLoadState("ready");
+      setLoadError(null);
+      setAiMessages((current) => [
+        ...current,
+        {
+          id: createAiMessageId("assistant"),
+          role: "assistant",
+          content: response.assistantMessage,
+        },
+      ]);
+      setAiLastActionSummary(formatAiActionSummary(response.actions.length));
+      setHighlightedCardIds(
+        new Set(
+          response.actions
+            .map((action) => action.cardId)
+            .filter((cardId): cardId is string => Boolean(cardId)),
+        ),
+      );
+    } catch (error) {
+      setAiError(getErrorMessage(error, "AI request could not be completed."));
+    } finally {
+      setAiSending(false);
+    }
+  };
+
   return (
     <div className="h-screen overflow-hidden bg-white">
       <GlobalHeader onLogout={onLogout} onOpenAi={() => setAiOpen(true)} username={username} />
@@ -241,6 +329,7 @@ export function BoardExperience({ onLogout, username = "user" }: BoardExperience
                     column={column}
                     cards={cardsForColumn(visibleCards, column.id)}
                     collapsed={collapsedColumns.has(column.id)}
+                    highlightedCardIds={highlightedCardIds}
                     onToggleCollapse={toggleColumn}
                     onAddCard={(targetColumn) => {
                       setEditorError(null);
@@ -273,7 +362,17 @@ export function BoardExperience({ onLogout, username = "user" }: BoardExperience
           )}
         </main>
       </div>
-      <AiDrawer open={aiOpen} onClose={() => setAiOpen(false)} />
+      <AiDrawer
+        draft={aiDraft}
+        error={aiError}
+        lastActionSummary={aiLastActionSummary}
+        messages={aiMessages}
+        open={aiOpen}
+        sending={aiSending}
+        onClose={() => setAiOpen(false)}
+        onDraftChange={setAiDraft}
+        onSubmit={submitAiMessage}
+      />
       {editor?.mode === "create" ? (
         <CardEditor
           mode={editor.mode}
@@ -367,4 +466,15 @@ function getErrorMessage(error: unknown, fallback: string) {
     return error.message;
   }
   return fallback;
+}
+
+function createAiMessageId(role: AiDrawerMessage["role"]) {
+  return `${role}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function formatAiActionSummary(actionCount: number) {
+  if (actionCount === 0) {
+    return "No board changes applied.";
+  }
+  return actionCount === 1 ? "1 board change applied." : `${actionCount} board changes applied.`;
 }

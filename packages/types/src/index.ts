@@ -72,3 +72,25 @@ export type MoveCardRequest = {
   columnId: string;
   position: number;
 };
+
+export type AiConversationMessage = {
+  role: "assistant" | "user";
+  content: string;
+};
+
+export type AiAppliedAction = {
+  type: "create_card" | "edit_card" | "move_card";
+  cardId: string | null;
+  columnId: string | null;
+};
+
+export type AiChatRequest = {
+  message: string;
+  history?: AiConversationMessage[];
+};
+
+export type AiChatResponse = {
+  assistantMessage: string;
+  actions: AiAppliedAction[];
+  board: BoardState;
+};

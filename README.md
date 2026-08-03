@@ -1,28 +1,10 @@
 # Kanban Board Webapp
 
-Local Project Management MVP with a FastAPI backend, Next.js frontend, SQLite persistence, and OpenRouter-backed AI assistant.
+Local Project Management MVP with a FastAPI backend, exported Next.js frontend, SQLite persistence, hardcoded MVP sign-in, and an OpenRouter-backed AI assistant.
 
-## Current Status
+## Run Locally
 
-Current scaffolding provides:
-
-- FastAPI application under `apps/backend/api`.
-- Next.js Kanban UI under `apps/frontend/web`.
-- MVP sign-in using `user` and `password`.
-- Backend-managed HttpOnly session cookie.
-- Frontend board loading from the persistent backend API.
-- API-backed column rename, card create/edit, and card move/reorder behavior.
-- `GET /` temporary static page in the current backend container until the frontend build is wired into FastAPI.
-- `GET /api/health`.
-- `GET /api/v1/status`.
-- `POST /api/v1/auth/login`, `GET /api/v1/auth/me`, and `POST /api/v1/auth/logout`.
-- Persistent board API endpoints under `/api/v1/board`, `/api/v1/columns`, and `/api/v1/cards`.
-- Backend-only OpenRouter verification at `POST /api/v1/ai/verify`.
-- Structured AI card action endpoint at `POST /api/v1/ai/chat`.
-- SQLite initialization for the MVP user, board, fixed columns, and demo cards.
-- Docker and platform start/stop scripts.
-
-## Local Commands
+Create a root `.env` file from `.env.example` and set `OPENROUTER_API_KEY` before using AI chat.
 
 Windows PowerShell:
 
@@ -38,8 +20,27 @@ macOS and Linux:
 ./scripts/stop.sh
 ```
 
-The backend API URL is `http://localhost:8000`.
+Open `http://localhost:8000`. Sign in with username `user` and password `password`.
 
-During frontend development, run the Next.js app from `apps/frontend/web` and open `http://localhost:3000`; browser API requests are sent to `http://localhost:8000`.
+## Development
 
-Set `OPENROUTER_API_KEY` in the root `.env` file before using the AI verification endpoint or later AI phases.
+```bash
+npm --workspace @kanban/types run check
+npm --workspace @kanban/web run check
+npm --workspace @kanban/web run lint
+npm --workspace @kanban/web run test
+npm --workspace @kanban/web run build
+uv sync --project apps/backend/api
+uv run --project apps/backend/api ruff check apps/backend/api/src apps/backend/api/tests
+uv run --project apps/backend/api mypy apps/backend/api/src apps/backend/api/tests
+uv run --project apps/backend/api pytest apps/backend/api/tests
+docker build .
+```
+
+During frontend development, run the Next.js dev server from `apps/frontend/web` and open `http://localhost:3000`; browser API requests are sent to `http://localhost:8000`.
+
+## Notes
+
+- FastAPI serves the built Next.js static export at `/` in the Docker image.
+- SQLite data persists under `data/` through Docker Compose.
+- The committed `.env.example` must not contain real API keys.
