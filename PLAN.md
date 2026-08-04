@@ -32,7 +32,8 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 - Update tests and documentation when behavior changes.
 - Aim for 80% test coverage only when that produces useful coverage for meaningful behavior.
 - Do not add low-value tests only to reach a coverage number; missing 80% is acceptable when the remaining gaps are not worth the maintenance cost.
-- Do not add registration, multiple boards, custom statuses, functional list/calendar views, real inboxes, notifications, file uploads, roles, or team administration.
+- During MVP phases, do not add registration, multiple boards, custom statuses, functional list/calendar views, real inboxes, notifications, file uploads, roles, or team administration.
+- For post-MVP phases, implement only the specifically approved phase and keep placeholder controls disabled until their owning phase is completed.
 
 ## Phase 1: Repository Review and Planning
 
@@ -318,6 +319,167 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 
 - The entire reference-inspired MVP works locally in one Docker container and satisfies the project requirements in `AGENTS.md`.
 
+## Post-MVP Feature Roadmap
+
+The MVP is complete through Phase 10. The following phases track features that are visible as placeholders or future affordances in the current UI but are not fully functional yet.
+
+## Phase 11: Spaces and Project Hub
+
+### Tasks
+
+- [ ] Extend the database design to support multiple spaces per user.
+- [ ] Define whether each space owns one board, multiple boards, or a future project collection.
+- [ ] Add backend APIs to list, create, rename, select, and archive spaces without breaking the existing MVP board.
+- [ ] Migrate the current single MVP board into a default `Launch` space.
+- [ ] Make the sidebar `Spaces` section functional for selecting spaces.
+- [ ] Implement the `Project Hub` shell as a real workspace-level overview instead of a static identity block.
+- [ ] Show space-level summary data such as active board count, open card count, recently updated cards, and AI-assisted changes.
+- [ ] Keep unavailable advanced workspace features clearly disabled until their own phase.
+- [ ] Add backend and frontend tests for space ownership, selection, migration, and sidebar behavior.
+- [ ] Update `docs/database-schema.json`, `docs/database.md`, and README when the schema and workflows change.
+
+### Validation
+
+- Existing MVP users keep their board after migration.
+- A signed-in user can create and switch between spaces.
+- Board data remains isolated by user and selected space.
+- The selected space persists after reload.
+- The Project Hub loads useful summary data without creating unsupported team-management features.
+- Unauthorized users cannot access another user's spaces.
+- Existing board APIs continue to work for the default space.
+
+### Complete When
+
+- Spaces are backed by persistent data, the sidebar selection is functional, and Project Hub provides a real workspace overview.
+
+## Phase 12: User Profile and Account Details
+
+### Tasks
+
+- [ ] Extend the user schema for basic personal information such as email, display name, company, job title, timezone, and avatar initials.
+- [ ] Seed sensible local profile data for the hardcoded MVP user.
+- [ ] Add backend APIs to read and update the signed-in user's profile.
+- [ ] Add a user profile panel or settings dialog from the header avatar.
+- [ ] Display user name, email, company, and initials consistently in the header and profile UI.
+- [ ] Validate email format, required display name rules, and reasonable field lengths.
+- [ ] Keep authentication hardcoded for now unless a later phase explicitly replaces it.
+- [ ] Add focused tests for profile loading, editing, validation, and persistence.
+- [ ] Update database documentation and README with profile fields and local account behavior.
+
+### Validation
+
+- The user can open the profile UI from the header.
+- Profile edits persist after reload and container restart.
+- Invalid profile input shows clear errors without changing stored data.
+- Profile details do not expose session internals or secrets.
+- Existing sign-in and board workflows continue to work.
+
+### Complete When
+
+- Basic user profile information is stored, editable, and visible in the application shell.
+
+## Phase 13: Inbox and Activity Feed
+
+### Tasks
+
+- [ ] Define the minimal activity model for card creation, card edits, moves, due date changes, AI actions, and profile/space changes.
+- [ ] Add backend storage for activity events owned by user and space.
+- [ ] Emit activity events from existing board, AI, profile, and space mutations.
+- [ ] Implement the sidebar `Inbox` destination as a real activity feed.
+- [ ] Add unread/read state for inbox items without implementing full notifications.
+- [ ] Add filtering for unread items and relevant project/space activity.
+- [ ] Update the inbox badge count from real unread data.
+- [ ] Add backend and frontend tests for activity creation, unread counts, read state, and user isolation.
+- [ ] Document event retention and what activity types are intentionally excluded.
+
+### Validation
+
+- Board and AI actions create readable activity events.
+- The inbox badge count matches unread activity.
+- The user can mark activity items as read.
+- Activity is scoped to the signed-in user and selected space.
+- The inbox remains useful on narrow screens and does not disrupt board navigation.
+
+### Complete When
+
+- Inbox is a real, persistent activity feed with accurate unread counts.
+
+## Phase 14: List View
+
+### Tasks
+
+- [ ] Define the list-view information architecture using the same board and card data.
+- [ ] Make the `List` tab functional without changing the existing Board tab behavior.
+- [ ] Display cards in a dense table or grouped list with title, status, due date, assignees, subtasks, attachments, and flagged state.
+- [ ] Support search in List view using the existing board search behavior.
+- [ ] Allow opening and editing cards from List view.
+- [ ] Allow status changes and deterministic ordering from List view when the interaction is clear and safe.
+- [ ] Preserve selected view in the URL or local presentation state.
+- [ ] Add responsive behavior for compact desktop and narrow layouts.
+- [ ] Add frontend and API contract tests for List view rendering, search, edit, and status changes.
+
+### Validation
+
+- Switching between Board and List does not lose search, selected space, or unsaved safe UI state.
+- List view reflects the same canonical backend board data as Board view.
+- Edits from List view persist and appear correctly when returning to Board view.
+- Disabled controls remain clear for features not yet implemented.
+
+### Complete When
+
+- The `List` tab is a fully functional alternate view of the same project data.
+
+## Phase 15: Calendar View
+
+### Tasks
+
+- [ ] Define the calendar scope for the MVP extension, starting with cards that have due dates.
+- [ ] Make the `Calendar` tab functional without introducing unrelated scheduling systems.
+- [ ] Render month and agenda-style views for cards by due date.
+- [ ] Allow opening and editing cards from calendar entries.
+- [ ] Allow changing a card due date through a clear calendar interaction.
+- [ ] Show undated cards in a lightweight holding area or filter, if needed.
+- [ ] Keep timezone behavior explicit and consistent with user profile settings when Phase 12 is complete.
+- [ ] Add empty, loading, error, and narrow-screen states.
+- [ ] Add tests for due-date rendering, date changes, search/filter interaction, and persistence.
+
+### Validation
+
+- Cards with due dates appear on the correct calendar dates.
+- Updating a due date persists and is reflected in Board, List, and Calendar views.
+- Cards without due dates are handled clearly.
+- Calendar remains usable at supported viewport sizes.
+- No external calendar integration is implied or added in this phase.
+
+### Complete When
+
+- The `Calendar` tab is a functional project due-date view backed by the existing card data.
+
+## Phase 16: Global Create and Quick Actions
+
+### Tasks
+
+- [ ] Define the exact scope for the header `+ New` action across spaces, boards, cards, and future entities.
+- [ ] Implement a global create menu that starts with task creation only unless spaces/boards are already approved and implemented.
+- [ ] Let the user choose target space, board, and status when creating a card globally.
+- [ ] Reuse the existing card editor validation and backend card creation API where possible.
+- [ ] Add keyboard and focus behavior for opening, closing, and submitting the create menu.
+- [ ] Keep unavailable quick actions visible only when clearly disabled or labelled.
+- [ ] Add frontend tests for creating cards from the global header and preserving current board context.
+- [ ] Update README and user-facing documentation if global create changes common workflows.
+
+### Validation
+
+- `+ New` can create a card in a valid target without navigating unexpectedly.
+- Created cards appear in Board, List, and Calendar views when those views are implemented.
+- Invalid or incomplete create requests show clear errors.
+- The menu works with keyboard navigation and narrow layouts.
+- Existing `Add task` buttons inside columns continue to work.
+
+### Complete When
+
+- The header `+ New` action is a real, tested quick-create workflow.
+
 ## Final Acceptance Criteria
 
 - [x] Hardcoded sign-in and logout work securely for the local MVP.
@@ -341,3 +503,15 @@ Match `docs/references/kanban-board-reference.png` in visual hierarchy and inter
 - [x] Required tests and validation commands pass.
 - [x] Secrets are not exposed or committed.
 - [x] Documentation contains only the commands and decisions needed to run and maintain the MVP.
+
+## Post-MVP Acceptance Criteria
+
+- [ ] Spaces are persistent and users can switch between them.
+- [ ] Project Hub provides a real workspace overview.
+- [ ] User profile stores and displays basic personal information.
+- [ ] Inbox is backed by real activity data and unread counts.
+- [ ] List view is a functional alternate project view.
+- [ ] Calendar view is a functional due-date view.
+- [ ] Header `+ New` opens a real quick-create workflow.
+- [ ] Placeholder navigation controls are removed, enabled, or clearly tied to completed features.
+- [ ] Existing MVP board, AI, authentication, and Docker workflows remain stable after each post-MVP phase.
